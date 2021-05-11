@@ -4,7 +4,7 @@
 ## Rhett M. Rautsaw
 
 This repository is private, but contains the underlying code and data for the **VenomMaps** Shiny application hosted at 
-[RhettRautsaw.com/shiny/VenomMaps](https://RhettRautsaw.com/shiny/VenomMaps/)
+[RhettRautsaw.app/shiny/VenomMaps](https://RhettRautsaw.app/shiny/VenomMaps/)
 
 This repository contains:
 
@@ -23,7 +23,7 @@ This repository contains:
 ## Running the Application Locally
 
 It is hosted freely on my Digital Ocean Droplet: 
-[RhettRautsaw.com/shiny/VenomMaps](https://RhettRautsaw.com/shiny/VenomMaps/)
+[RhettRautsaw.app/shiny/VenomMaps](https://RhettRautsaw.app/shiny/VenomMaps/)
 
 This app can also be run through R:
 
