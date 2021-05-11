@@ -11,10 +11,12 @@ This repository contains:
 - Updated distribution maps in `geojson` format for all New World Pitvipers
 - Information on the taxonomic citations, size, and subspecies for each species
 
-TO DO:
+## TO DO List (Additions)
 
 - Update distribution maps for Old World Pitvipers and True Vipers
-- Add phylogeographic tracing
+  - Add occurrence points for Old World Vipers
+- Add phylogeographic tracing/playback
+  - [Rase](https://academic.oup.com/sysbio/article/64/6/1059/1669698)
 - Venom
 - Diet
 
