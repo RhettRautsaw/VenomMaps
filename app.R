@@ -13,7 +13,7 @@ library(readr)
 library(ggpubr)
 library(ggtext)
 library(patchwork)
-# library(sp)
+library(sp)
 # library(rgdal)
 # library(htmltools)
 # library(htmlwidgets)
@@ -43,14 +43,15 @@ infoGenerator<-function(info, full_info){
 }
 
 
-load("data/shiny-data.RData")
-info<-read_csv("data/ViperInfo.csv")
+load("data/shiny-data2.RData")
+source("support_scripts/addRasterImage2.R")
 
-source("support_scripts/stack_diff_extents.R")
-crs(combined_niches)<-CRS("+init=epsg:4326")
-#brPal <- colorRampPalette(c('#008B00FF', '#008B0000', '#008B0000'), alpha=T)
-brPal <- colorRampPalette(c('#00A600FF', '#61C500BF', '#E6E40280', '#ECB17640', '#F2F2F200'), alpha=T)
-pal <- brPal(255)
+# info<-read_csv("data/ViperInfo.csv")
+# source("support_scripts/stack_diff_extents.R")
+# crs(combined_niches)<-CRS("+init=epsg:4326")
+# #brPal <- colorRampPalette(c('#008B00FF', '#008B0000', '#008B0000'), alpha=T)
+# brPal <- colorRampPalette(c('#00A600FF', '#61C500BF', '#E6E40280', '#ECB17640', '#F2F2F200'), alpha=T)
+# pal <- brPal(255)
 
 species_list<-unique(sort(as.vector(info$species)))
 countries_list<-sort(unique(unlist(strsplit(paste(unlist(info$countries), collapse="; "), "; "))))
@@ -84,6 +85,10 @@ ui <- navbarPage("VenomMaps", id="nav",
                 
                 checkboxInput("niche", "Niche Model", FALSE),
                 
+                checkboxInput("nodist", "Clear Distribution", FALSE),
+                
+                h5("____________________________________"),
+                
                 checkboxInput("points", "Occurrence Points", FALSE), # and Heatmap
                 p("Gray points are those beyond their distribution"),
                 p("Brown points are those with altered species IDs"),
@@ -109,13 +114,13 @@ ui <- navbarPage("VenomMaps", id="nav",
     
     tabPanel("General Information",
         plotOutput("infoPlot", height = "1000px")
-    ),
+    )
 
     ###################################
     ######### Phylogeography ##########
     ###################################
     
-    tabPanel("Phylogeography")
+    # tabPanel("Phylogeography")
     
 )
 
@@ -129,12 +134,17 @@ server<-function(input, output, session) {
     
     output$map<-renderLeaflet({
         leaflet() %>% 
-            addWMSTiles('http://ows.mundialis.de/services/service?', layers='TOPO-WMS', group="Topography") %>%
-            addProviderTiles(providers$Esri.WorldStreetMap, group="Open Street Map") %>%
-            addProviderTiles(providers$Esri.WorldTerrain, group="Terrain") %>%
-            addProviderTiles(providers$Esri.WorldImagery, group="Satellite") %>%
-            addProviderTiles(providers$Stamen.TonerLines, group="Boundaries") %>%
-            addProviderTiles(providers$Stamen.TonerLabels, group="Labels") %>%
+            addMapPane("background", zIndex = 0) %>%        # Level 1: bottom
+            addMapPane("polygons", zIndex = 1) %>%          # Level 2: middle
+            addMapPane("rasters", zIndex = 100000) %>%      # Level 3: middle
+            addMapPane("points", zIndex = 440) %>%          # Level 4: middle
+            addMapPane("labels", zIndex = 450) %>%          # Level 5: top
+            addWMSTiles('http://ows.mundialis.de/services/service?', layers='TOPO-WMS', group="Topography", options = pathOptions(pane = "background")) %>%
+            addProviderTiles(providers$Esri.WorldStreetMap, group="Open Street Map", options = pathOptions(pane = "background")) %>%
+            addProviderTiles(providers$Esri.WorldTerrain, group="Terrain", options = pathOptions(pane = "background")) %>%
+            addProviderTiles(providers$Esri.WorldImagery, group="Satellite", options = pathOptions(pane = "background")) %>%
+            addProviderTiles(providers$Stamen.TonerLines, group="Boundaries", options = pathOptions(pane = "labels")) %>%
+            addProviderTiles(providers$Stamen.TonerLabels, group="Labels", options = pathOptions(pane = "labels")) %>%
             addLayersControl(
                 baseGroups=c("Topography", "Open Street Map", "Terrain", "Satellite"),
                 overlayGroups=c("Boundaries","Labels"),
@@ -197,8 +207,8 @@ server<-function(input, output, session) {
         sp_factpal<-colorFactor(sp_pal,levels=sort(distribution$Subspecies), ordered=T, reverse=T)
         
         leafletProxy("map", data = distribution) %>%
-            clearGroup("distribution") %>% clearHeatmap() %>% clearMarkerClusters() %>%  removeControl("distribution") %>% clearImages() %>%
-            addPolygons(data=distribution, color="black", weight=3, fillColor = ~sp_factpal(Subspecies), fillOpacity = 0.5, group="distribution") %>%
+            clearGroup("distribution") %>% clearGroup("occpoints") %>% clearHeatmap() %>% clearMarkerClusters() %>%  removeControl("distribution") %>% clearImages() %>%
+            addPolygons(data=distribution, color="black", weight=3, fillColor = ~sp_factpal(Subspecies), fillOpacity = 0.5, group="distribution", options = pathOptions(pane = "polygons")) %>%
             addLegend(data=distribution, position = "topleft", pal=sp_factpal, values = ~Subspecies, layerId = "distribution") %>%
             fitBounds(bbox[1],bbox[2],bbox[3],bbox[4])
         
@@ -213,12 +223,13 @@ server<-function(input, output, session) {
             labs<-pointsData$labs
             if(nrow(pointsData)!=0){
                 leafletProxy("map", data = distribution) %>%
-                    addCircleMarkers(data=pointsData,group="distribution",
+                    addCircleMarkers(data=pointsData,group="occpoints",
                                     lng=~as.numeric(longitude),
                                     lat=~as.numeric(latitude),
                                     radius = 4,
                                     color = ~point_pal(flag),
                                     stroke = FALSE, fillOpacity = 0.8,
+                                    options = pathOptions(pane = "points"),
                                     #clusterOptions = markerClusterOptions(),
                                     label = lapply(labs, htmltools::HTML)) #%>%
                     # addHeatmap(data=pointsData,
@@ -230,41 +241,17 @@ server<-function(input, output, session) {
         }
         if(input$niche){
             if(length(niche())!=0){
-                leafletProxy("map", data = distribution) %>%
-                    addRasterImage(niche(), colors = rev(pal))
+                if(input$nodist){
+                    leafletProxy("map") %>%
+                        clearGroup("distribution") %>% removeControl("distribution") %>%
+                        addRasterImage2(niche(), colors = rev(pal), options = tileOptions(pane = "rasters"))
+                }else{
+                    leafletProxy("map") %>%
+                        addRasterImage2(niche(), colors = rev(pal), options = tileOptions(pane = "rasters"))   
+                }
             }
         }
     })
-    
-    # library(raster)
-    # library(leaflet)
-    # library(sf)
-    # 
-    # setwd("~/Desktop/")
-    # 
-    # tmp<-raster("Crotalus_cerberus_avg.asc")
-    # 
-    # crs(tmp)<-CRS("+init=epsg:4326")
-    # 
-    # #brPal <- colorRampPalette(c('#008B00FF', '#008B0000', '#008B0000'), alpha=T)
-    # #brPal <- colorRampPalette(c('#008B00FF', '#008B0000'), alpha=T)
-    # 
-    # # Default raster plot = rev(terrain.colors(255))
-    # 
-    # brPal <- colorRampPalette(c('#00A600FF', '#61C500BF', '#E6E40280', '#ECB17640', '#F2F2F200'), alpha=T)
-    # pal <- brPal(255)
-    # 
-    # data<-cbind(1:255,rep(1,255))
-    # barplot(data[,2]~data[,1],col=pal,axes=F, axisnames=F,xlab="",ylab="",space=0,border=NA)
-    # 
-    # dist<-read_sf("~/Dropbox/Projects/2020_MacroCharDisp/Occurence_RangeMaps/Final/geojson/Crotalus_cerberus.geojson")
-    # 
-    # #leaflet() %>% addTiles() %>% addRasterImage(tmp, colors = rev(pal)) %>% addPolygons(data=dist)
-    # 
-    # leaflet() %>% addTiles()  %>% #addWMSTiles('http://ows.mundialis.de/services/service?', layers='TOPO-WMS', group="Topography") %>% 
-    #     addRasterImage(tmp, colors = rev(pal)) #%>% addPolygons(data=dist)
-    # 
-    # plot(tmp)
     
     ###################################
     ####### General Information #######
