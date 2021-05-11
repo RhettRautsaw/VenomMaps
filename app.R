@@ -43,15 +43,15 @@ infoGenerator<-function(info, full_info){
 }
 
 
-load("data/shiny-data2.RData")
+load("data/shiny-data.RData")
 source("support_scripts/addRasterImage2.R")
 
-# info<-read_csv("data/ViperInfo.csv")
-# source("support_scripts/stack_diff_extents.R")
-# crs(combined_niches)<-CRS("+init=epsg:4326")
-# #brPal <- colorRampPalette(c('#008B00FF', '#008B0000', '#008B0000'), alpha=T)
-# brPal <- colorRampPalette(c('#00A600FF', '#61C500BF', '#E6E40280', '#ECB17640', '#F2F2F200'), alpha=T)
-# pal <- brPal(255)
+info<-read_csv("data/ViperInfo.csv")
+source("support_scripts/stack_diff_extents.R")
+crs(combined_niches)<-CRS("+init=epsg:4326")
+#brPal <- colorRampPalette(c('#008B00FF', '#008B0000', '#008B0000'), alpha=T)
+brPal <- colorRampPalette(c('#00A600FF', '#61C500BF', '#E6E40280', '#ECB17640', '#F2F2F200'), alpha=T)
+pal <- brPal(255)
 
 species_list<-unique(sort(as.vector(info$species)))
 countries_list<-sort(unique(unlist(strsplit(paste(unlist(info$countries), collapse="; "), "; "))))
