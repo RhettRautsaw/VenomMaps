@@ -42,8 +42,11 @@ infoGenerator<-function(info, full_info){
     final
 }
 
+# Load Data
+sp_pal<-RColorBrewer::brewer.pal(11, "BrBG")
+point_pal <- colorFactor(c("red2", "gray75", "darkturquoise", "khaki2"), domain = c("dubious", "geoDist", "noLand", "updated"), na.color = "black")
 
-load("data/shiny-data.RData")
+load("data/shiny-data_2021-09-13.RData")
 source("support_scripts/addRasterImage2.R")
 
 info<-read_csv("data/ViperInfo.csv")
@@ -90,8 +93,10 @@ ui <- navbarPage("VenomMaps", id="nav",
                 h5("____________________________________"),
                 
                 checkboxInput("points", "Occurrence Points", FALSE), # and Heatmap
-                p("Gray points are those beyond their distribution"),
-                p("Brown points are those with altered species IDs"),
+                p("Red: points are dubious/questionable"),
+                p("Gray: points are beyond their distribution"),
+                p("Blue: points are not on land"),
+                p("Yellow: species ID has been altered"),
                 
                 h5("____________________________________"),
                 
@@ -208,18 +213,18 @@ server<-function(input, output, session) {
         
         leafletProxy("map", data = distribution) %>%
             clearGroup("distribution") %>% clearGroup("occpoints") %>% clearHeatmap() %>% clearMarkerClusters() %>%  removeControl("distribution") %>% clearImages() %>%
-            addPolygons(data=distribution, color="black", weight=3, fillColor = ~sp_factpal(Subspecies), fillOpacity = 0.5, group="distribution", options = pathOptions(pane = "polygons")) %>%
+            addPolygons(data=distribution, color="black", weight=3, fillColor = ~sp_factpal(Subspecies), fillOpacity = 0.75, group="distribution", options = pathOptions(pane = "polygons")) %>%
             addLegend(data=distribution, position = "topleft", pal=sp_factpal, values = ~Subspecies, layerId = "distribution") %>%
             fitBounds(bbox[1],bbox[2],bbox[3],bbox[4])
         
         if(input$points){
             # Filter points
-            pointsData<-occ %>% filter(Species==input$species) %>%
-                mutate(labs=paste0( '<p>', prov, " ", 
-                                    ID, '<p></p>',
-                                    "recorded: ", new_species,'</p><p>',
-                                    "updated: ", Species, '</p><p>',
-                                    "accuracy: ", accuracy,' m</p>'))
+            pointsData<-occ %>% filter(final_species %in% input$species) %>%
+                mutate(labs=paste0( ID, '<p></p>',
+                                    "recorded: ", taxonomy_updated_species,'</p><p>',
+                                    "updated: ", final_species, '</p><p>',
+                                    "accuracy: ", accuracy_m,' m</p><p>',
+                                    "flags: ", flag_detailed, '</p>'))
             labs<-pointsData$labs
             if(nrow(pointsData)!=0){
                 leafletProxy("map", data = distribution) %>%
@@ -227,11 +232,11 @@ server<-function(input, output, session) {
                                     lng=~as.numeric(longitude),
                                     lat=~as.numeric(latitude),
                                     radius = 4,
-                                    color = ~point_pal(flag),
-                                    stroke = FALSE, fillOpacity = 0.8,
+                                    fill = TRUE, fillColor = ~point_pal(flag), fillOpacity = 1, weight=1,
+                                    stroke = TRUE, color="black", opacity=1,
                                     options = pathOptions(pane = "points"),
                                     #clusterOptions = markerClusterOptions(),
-                                    label = lapply(labs, htmltools::HTML)) #%>%
+                                    popup = lapply(labs, htmltools::HTML)) #%>%
                     # addHeatmap(data=pointsData,
                     #             lng=~as.numeric(longitude),
                     #             lat=~as.numeric(latitude),
