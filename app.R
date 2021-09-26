@@ -5,8 +5,6 @@ library(leaflet.extras2)
 library(RColorBrewer)
 library(sf)
 library(raster)
-library(scales)
-library(lattice)
 library(tidyr)
 library(dplyr)
 library(readr)
@@ -14,6 +12,8 @@ library(ggpubr)
 library(ggtext)
 library(patchwork)
 library(sp)
+# library(scales)
+# library(lattice)
 # library(rgdal)
 # library(htmltools)
 # library(htmlwidgets)
@@ -46,12 +46,12 @@ infoGenerator<-function(info, full_info){
 sp_pal<-RColorBrewer::brewer.pal(11, "BrBG")
 point_pal <- colorFactor(c("red2", "gray75", "darkturquoise", "khaki2"), domain = c("dubious", "geoDist", "noLand", "updated"), na.color = "black")
 
-load("data/shiny-data_2021-09-13.RData")
-source("support_scripts/addRasterImage2.R")
+load("shiny_support_material/shiny-data_2021-09-13.RData")
+source("shiny_support_material/addRasterImage2.R")
 
-info<-read_csv("data/ViperInfo.csv")
-source("support_scripts/stack_diff_extents.R")
-crs(combined_niches)<-CRS("+init=epsg:4326")
+info<-read_csv("shiny_support_material/ViperInfo.csv")
+source("shiny_support_material/stack_diff_extents.R")
+
 #brPal <- colorRampPalette(c('#008B00FF', '#008B0000', '#008B0000'), alpha=T)
 brPal <- colorRampPalette(c('#00A600FF', '#61C500BF', '#E6E40280', '#ECB17640', '#F2F2F200'), alpha=T)
 pal <- brPal(255)
@@ -90,6 +90,8 @@ ui <- navbarPage("VenomMaps", id="nav",
                 
                 checkboxInput("nodist", "Clear Distribution", FALSE),
                 
+                p("Please be patient. These large files can take a while to plot."),
+                
                 h5("____________________________________"),
                 
                 checkboxInput("points", "Occurrence Points", FALSE), # and Heatmap
@@ -126,6 +128,12 @@ ui <- navbarPage("VenomMaps", id="nav",
     ###################################
     
     # tabPanel("Phylogeography")
+    
+    ###################################
+    ############# Venom ###############
+    ###################################
+    
+    # tabPanel("Venom")
     
 )
 
@@ -185,11 +193,29 @@ server<-function(input, output, session) {
     })
     
     # Filter enms
+    # niche<-reactive({
+    #     if((input$niche) & any(input$species %in% names(combined_niches))){
+    #         #raster::subset(combined_niches, input$species)
+    #         tmp<-combined_niches[[which(names(combined_niches) %in% input$species)]]
+    #         max(tmp, na.rm = TRUE)
+    #     }else{
+    #         vector(mode="numeric", length=0)
+    #     }
+    # })
+    
+    # Load ENMs
     niche<-reactive({
-        if((input$niche) & any(input$species %in% names(combined_niches))){
-            #raster::subset(combined_niches, input$species)
-            tmp<-combined_niches[[which(names(combined_niches) %in% input$species)]]
-            max(tmp, na.rm = TRUE)
+        if((input$niche) & length(list.files("data/enms_p", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T))>1){
+            files<-list.files("data/enms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T)
+            combined_niches<-stack_diff_extents(files)
+            names(combined_niches)<-gsub("_avg","",names(combined_niches))
+            # crs(combined_niches)<-CRS("+init=epsg:4326")
+            max(combined_niches, na.rm = TRUE)
+        }else if((input$niche) & length(list.files("data/enms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T))==1){
+            files<-list.files("data/enms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T)
+            combined_niches<-raster(files)
+            names(combined_niches)<-gsub("_avg","",names(combined_niches))
+            combined_niches
         }else{
             vector(mode="numeric", length=0)
         }
@@ -207,6 +233,7 @@ server<-function(input, output, session) {
     
     # Update map with distribution/points
     observeEvent(input$update, {
+        show_modal_spinner()
         distribution<-distribution()
         bbox<-st_bbox(as(distribution,"sf")) %>% as.vector()
         sp_factpal<-colorFactor(sp_pal,levels=sort(distribution$Subspecies), ordered=T, reverse=T)
@@ -249,13 +276,16 @@ server<-function(input, output, session) {
                 if(input$nodist){
                     leafletProxy("map") %>%
                         clearGroup("distribution") %>% removeControl("distribution") %>%
-                        addRasterImage2(niche(), colors = rev(pal), options = tileOptions(pane = "rasters"))
+                        addRasterImage2(niche(), colors = rev(pal), options = tileOptions(pane = "rasters"), 
+                                        maxBytes = 800*1024*1024, project = T)
                 }else{
                     leafletProxy("map") %>%
-                        addRasterImage2(niche(), colors = rev(pal), options = tileOptions(pane = "rasters"))   
+                        addRasterImage2(niche(), colors = rev(pal), options = tileOptions(pane = "rasters"), 
+                                        maxBytes = 800*1024*1024, project = T)   
                 }
             }
         }
+        remove_modal_spinner()
     })
     
     ###################################

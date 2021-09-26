@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "Bothrops_insularis",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Species": "Bothrops_insularis", "Subspecies": "Bothrops_insularis" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -46.67486191, -24.47819519 ], [ -46.67430496, -24.48430634 ], [ -46.67208481, -24.48486137 ], [ -46.67124939, -24.48736382 ], [ -46.67625046, -24.49097252 ], [ -46.67847061, -24.48680305 ], [ -46.67847061, -24.48263931 ], [ -46.67708206, -24.48208237 ], [ -46.67708206, -24.4790287 ], [ -46.67486191, -24.47819519 ] ] ] } }
+]
+}

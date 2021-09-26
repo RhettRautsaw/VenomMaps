@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "Crotalus_polisi",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Species": "Crotalus_polisi", "Subspecies": "Crotalus_polisi" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -113.48416901, 28.97916603 ], [ -113.47628021, 28.97427559 ], [ -113.474823, 28.96870995 ], [ -113.47756958, 28.9662571 ], [ -113.48103333, 28.96712685 ], [ -113.48181915, 28.97086334 ], [ -113.48044586, 28.97251701 ], [ -113.48527527, 28.97694206 ], [ -113.48583221, 28.97851563 ], [ -113.48416901, 28.97916603 ] ] ] } }
+]
+}

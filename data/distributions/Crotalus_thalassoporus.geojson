@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "Crotalus_thalassoporus",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Species": "Crotalus_thalassoporus", "Subspecies": "Crotalus_thalassoporus" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -113.46741486, 29.02391434 ], [ -113.46382141, 29.02137756 ], [ -113.4597168, 29.01416588 ], [ -113.46333313, 29.01138878 ], [ -113.46722412, 29.01472282 ], [ -113.46878052, 29.01907349 ], [ -113.46984863, 29.02410126 ], [ -113.46741486, 29.02391434 ] ] ] } }
+]
+}
