@@ -1,11 +1,3 @@
-# Venom Maps
-
-### Rhett M. Rautsaw, Gustavo Jiménez, Christoph Grünwald, Erich P. Hofmann, Laura Alencar, Marcio Martins, Paola Carrasco, Tiffany Doan, & Christopher L. Parkinson
-
-2021 September 26
-
-***
-
 This repository contains the code used to
 
 1.  Update occurrence record taxonomy for New World Crotalinae from several sources.
