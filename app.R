@@ -47,7 +47,7 @@ infoGenerator<-function(info, full_info){
 sp_pal<-RColorBrewer::brewer.pal(11, "BrBG")
 point_pal <- colorFactor(c("red2", "gray75", "darkturquoise", "khaki2"), domain = c("dubious", "geoDist", "noLand", "updated"), na.color = "black")
 
-load("shiny_support_material/shiny-data_2021-09-13.RData")
+load("shiny_support_material/shiny-data_2021-10-13.RData")
 source("shiny_support_material/addRasterImage2.R")
 
 info<-read_csv("shiny_support_material/ViperInfo.csv")

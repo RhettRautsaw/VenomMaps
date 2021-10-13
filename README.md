@@ -1,7 +1,7 @@
 # VenomMaps: Updated Distribution Maps and Niche Models for New World Pitvipers (Crotalinae)
 <img align="right" src="www/VenomMaps.png" width=150>
 
-### Rhett M. Rautsaw, Gustavo Jiménez, Christoph Grünwald, Erich P. Hofmann, Laura Alencar, Marcio Martins, Paola Carrasco, Tiffany Doan, & Christopher L. Parkinson
+### Rhett M. Rautsaw, Gustavo Jiménez-Velázquez, Erich P. Hofmann, Laura Alencar, Christoph I. Grünwald, Marcio Martins, Paola Carrasco, Tiffany Doan, & Christopher L. Parkinson
 
 # Table of Contents
 
@@ -17,12 +17,31 @@
   - [`code/autokuenm/*`](https://github.com/RhettRautsaw/VenomMaps/tree/master/code/autokuenm)
 - Shiny App to visualize results
   - [`app.R`](https://RhettRautsaw.app/shiny/VenomMaps/)
+  - User Guide found below
 
 
 # Shiny App
 
 You can view the VenomMaps Shiny App for free on my Digital Ocean Droplet: 
 [RhettRautsaw.app/shiny/VenomMaps](https://RhettRautsaw.app/shiny/VenomMaps/)
+
+## User Guide
+
+After opening the app you should be greeted with the following page:
+
+<img align="center" src="www/screenshot1.png" width=100%>
+
+You can enter a **Country** or **Species** into the boxes on the right side of the page. Multiple countries/species can be input at once! The **Country** box is used to filter the **Species** options to only those found in that country. Once you have a **Species** (1) selected, you can scroll down and hit **Update** (2) to quickly plot the distribution.
+
+<img align="center" src="www/screenshot2.png" width=100%>
+
+The box in the lower left corner (1) has alternate basemaps on which to view the distribution. You can also plot the **Niche Model** (2) and **Occurrence Points** (3) by checking those boxes on the right side of the page, then hitting **Update** (4) again. However, please note that niche models are large and take a long time to plot. Please be patient. Alternatively, you can download this repository and run the Shiny App locally for faster plotting (see below). 
+
+<img align="center" src="www/screenshot3.png" width=100%>
+
+You can download the distribution map using the **Download Shapefile** option. There is also a second tab at the top of the page (**General Information**) which will give you some more information such as the common name, tell you when the species was described, subspecies, and the maximum length for the species compared to all other viper species:
+
+<img align="center" src="www/screenshot4.png" width=100%>
 
 ## Running the Application Locally
 
