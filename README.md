@@ -5,10 +5,9 @@
 
 <br>
 
-[![](https://img.shields.io/badge/License-CC%20BY--NC--SA-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![](https://img.shields.io/badge/Shiny%20App-VenomMaps-blue)](https://rhettrautsaw.app/shiny/VenomMaps)
 [![](https://img.shields.io/badge/Published%20in-Scientific%20Data-blue)]()
-
-</br>
+[![](https://img.shields.io/badge/License-CC%20BY--NC--SA-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
 # Table of Contents
 

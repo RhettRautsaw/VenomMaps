@@ -91,25 +91,28 @@ ui <- navbarPage("VenomMaps", id="nav",
                 selectizeInput(inputId = "species", label = h4("Species:"), choices = species_list, 
                                multiple = TRUE),
                 
+                actionButton("update", "Update"),
+                
                 h5("____________________________________"),
                 
                 checkboxInput("niche", "Niche Model", FALSE),
                 
                 checkboxInput("nodist", "Clear Distribution", FALSE),
                 
+                p("Select \"Update\" again after checking this box"),
                 p("Please be patient. These large files can take a while to plot."),
                 
                 h5("____________________________________"),
                 
                 checkboxInput("points", "Occurrence Points", FALSE), # and Heatmap
+                p("Select \"Update\" again after checking this box"),
                 p("Red: points are dubious/questionable"),
                 p("Gray: points are beyond their distribution"),
                 p("Blue: points are not on land"),
                 p("Yellow: species ID has been altered"),
                 
                 h5("____________________________________"),
-                
-                actionButton("update", "Update"),
+
                 downloadButton("downloadDist", "Download Shapefile"),
                 
                 h5("____________________________________"),
