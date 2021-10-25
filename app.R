@@ -13,6 +13,7 @@ library(ggtext)
 library(patchwork)
 library(sp)
 library(shinybusy)
+library(readxl)
 # library(scales)
 # library(lattice)
 # library(rgdal)
@@ -26,16 +27,16 @@ infoGenerator<-function(info, full_info){
     final=list()
     for(i in 1:nrow(info)){
         tmp<-paste0(
-            '<br><span style = "font-size:20pt;"><b><i>',gsub("_"," ",info[i,1]),' </b></i></span><span style="font-size:10pt;">',info[i,4],'</span><br>',
-            '<span style = "font-size:15pt;">', info[i,8],'</span><br>',
-            '<span style = "font-size:15pt;"><strong>Family:</strong> Viperidae (',info[i,7],')</span><br>',
-            '<span style = "font-size:15pt;"><strong>Subspecies:</strong> ',info[i,3],'</span><br>',
-            '<span style = "font-size:15pt;"><strong>',info[i,10],':</strong> ',info[i,9],' mm</span><br>',
-            '<span style = "font-size:15pt;"><strong>Distribution</strong>: ', info[i,16],'</span><br><br>'
+            '<br><span style = "font-size:20pt;"><b><i>',gsub("_"," ",info[i,"species"]),' </b></i></span><span style="font-size:10pt;">',info[i,"description_citation"],'</span><br>',
+            '<span style = "font-size:15pt;">', info[i,"common_name"],'</span><br>',
+            '<span style = "font-size:15pt;"><strong>Family:</strong> Viperidae (',info[i,"subfamily"],')</span><br>',
+            '<span style = "font-size:15pt;"><strong>Subspecies:</strong> ',info[i,"subspecies"],'</span><br>',
+            '<span style = "font-size:15pt;"><strong>',info[i,"length_measure"],':</strong> ',info[i,"max_length_mm"],' mm</span><br>',
+            '<span style = "font-size:15pt;"><strong>Distribution</strong>: ', info[i,"countries"],'</span><br><br>'
         )
         tmp2<-gghistogram(full_info, x="max_length_mm", fill="gray", xlab="Max Length (mm)") + 
-            geom_vline(xintercept=as.numeric(info[i,9]), color="red", linetype="dashed") +
-            annotate(geom='text', label=as.character(info[i,9]), x=as.numeric(info[i,9]), y=Inf, hjust=-0.5, vjust=5, size=8)+
+            geom_vline(xintercept=as.numeric(info[i,"max_length_mm"]), color="red", linetype="dashed") +
+            annotate(geom='text', label=as.character(info[i,"max_length_mm"]), x=as.numeric(info[i,"max_length_mm"]), y=Inf, hjust=-0.5, vjust=5, size=8)+
             labs(title=tmp)+
             theme(plot.title = element_textbox_simple(lineheight = 1.5))
         final[[i]]<-tmp2
@@ -47,10 +48,11 @@ infoGenerator<-function(info, full_info){
 sp_pal<-RColorBrewer::brewer.pal(11, "BrBG")
 point_pal <- colorFactor(c("red2", "gray75", "darkturquoise", "khaki2"), domain = c("dubious", "geoDist", "noLand", "updated"), na.color = "black")
 
-load("shiny_support_material/shiny-data_2021-10-13.RData")
+load("shiny_support_material/shiny-data_2021-10-25.RData")
 source("shiny_support_material/addRasterImage2.R")
 
-info<-read_csv("shiny_support_material/ViperInfo.csv")
+#info<-read_csv("shiny_support_material/ViperInfo.csv")
+info<-read_xlsx("supplemental_material/SupplementalTable1.xlsx", sheet=1)
 source("shiny_support_material/stack_diff_extents.R")
 
 #brPal <- colorRampPalette(c('#008B00FF', '#008B0000', '#008B0000'), alpha=T)
@@ -78,8 +80,12 @@ ui <- navbarPage("VenomMaps", id="nav",
                 draggable = TRUE, top = 60, left = "auto", right = 20, bottom = 50,
                 width = 330, style = "overflow-y: scroll;",
                 img(src = "VenomMaps.png", height = 300, width = 250, style="display: block; margin-left: auto; margin-right: auto"),
+
+                tags$div(HTML("<br><center><p><a href=\"https://github.com/RhettRautsaw/VenomMaps\"><img src=\"https://img.shields.io/badge/GitHub-RhettRautsaw/VenomMaps-blue\"></a></p></center>")),
+                tags$div(HTML("<center><p><a href=\"\"><img src=\"https://img.shields.io/badge/Published%20in-Scientific%20Data-blue\"></a></p></center>")),
+                tags$div(HTML("<center><p><a href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/\"><img src=\"https://img.shields.io/badge/License-CC%20BY--NC--SA-blue\"></a></p></center>")),
                 
-                p("Use this \n panel to see lists of species by country. Then select your species of interest and explore the different tabs!"),
+                tags$div(HTML("<center><p>Select a species and hit \"Update\"</p><p>You can also filter species by country or add occurrence records/niche models with the check boxes.</p></center>")),
                 selectizeInput(inputId = "countries", label = h4("Country:"), choices = countries_list,
                                multiple = TRUE),
                 selectizeInput(inputId = "species", label = h4("Species:"), choices = species_list, 
@@ -109,7 +115,7 @@ ui <- navbarPage("VenomMaps", id="nav",
                 h5("____________________________________"),
                 
                 h5("Acknowledgements:"),
-                p("Distributions of Old World taxa were obtained from ", a(href="https://www.nature.com/articles/s41559-017-0332-2", "Roll et al. 2017")),
+                p("Distributions of Old World Viperidae were obtained from ", a(href="https://www.nature.com/articles/s41559-017-0332-2", "GARD 1.1")),
                 p("Information on max snake lengths was obtained from ", a(href="https://onlinelibrary.wiley.com/doi/abs/10.1111/geb.12398", "Feldman et al. 2015")),
                 p("Information on descriptive citations, common names, and subspecies was obtained from the ", a(href="https://reptile-database.reptarium.cz/", "Reptile Database"))
             )

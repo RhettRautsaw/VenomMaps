@@ -1,7 +1,14 @@
 # VenomMaps: Updated Distribution Maps and Niche Models for New World Pitvipers (Crotalinae)
 <img align="right" src="www/VenomMaps.png" width=150>
 
-### Rhett M. Rautsaw, Gustavo Jiménez-Velázquez, Erich P. Hofmann, Laura Alencar, Christoph I. Grünwald, Marcio Martins, Paola Carrasco, Tiffany Doan, & Christopher L. Parkinson
+### Rhett M. Rautsaw, Gustavo Jiménez-Velázquez, Erich P. Hofmann, Laura R. V. Alencar, Christoph I. Grünwald, Marcio Martins, Paola Carrasco, Tiffany M. Doan, & Christopher L. Parkinson
+
+<br>
+
+[![](https://img.shields.io/badge/License-CC%20BY--NC--SA-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![](https://img.shields.io/badge/Published%20in-Scientific%20Data-blue)]()
+
+</br>
 
 # Table of Contents
 
