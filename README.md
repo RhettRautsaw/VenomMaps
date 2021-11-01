@@ -7,7 +7,7 @@
 
 [![](https://img.shields.io/badge/Shiny%20App-VenomMaps-blue)](https://rhettrautsaw.app/shiny/VenomMaps)
 [![](https://img.shields.io/badge/Published%20in-Scientific%20Data-blue)]()
-[![](https://img.shields.io/badge/License-CC%20BY--NC--SA-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![](https://img.shields.io/badge/License-CC%20BY-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![DOI](https://zenodo.org/badge/366181795.svg)](https://zenodo.org/badge/latestdoi/366181795)
 
 # Table of Contents
