@@ -7,8 +7,8 @@
 
 [![](https://img.shields.io/badge/Shiny%20App-VenomMaps-blue)](https://rhettrautsaw.app/shiny/VenomMaps)
 [![](https://img.shields.io/badge/Published%20in-Scientific%20Data-blue)]()
-[![](https://img.shields.io/badge/License-CC%20BY-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![DOI](https://zenodo.org/badge/366181795.svg)](https://zenodo.org/badge/latestdoi/366181795)
+[![](https://img.shields.io/badge/License-CC%20BY-blue)](https://creativecommons.org/licenses/by/4.0/)
+[![](https://img.shields.io/badge/DOI-10.5281/zenodo.5637094-blue)](https://doi.org/10.5281/zenodo.5637094)
 
 # Table of Contents
 

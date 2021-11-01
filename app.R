@@ -83,8 +83,8 @@ ui <- navbarPage("VenomMaps", id="nav",
 
                 tags$div(HTML("<br><center><p><a href=\"https://github.com/RhettRautsaw/VenomMaps\"><img src=\"https://img.shields.io/badge/GitHub-RhettRautsaw/VenomMaps-blue\"></a></p></center>")),
                 tags$div(HTML("<center><p><a href=\"\"><img src=\"https://img.shields.io/badge/Published%20in-Scientific%20Data-blue\"></a></p></center>")),
-                tags$div(HTML("<center><p><a href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/\"><img src=\"https://img.shields.io/badge/License-CC%20BY-blue\"></a></p></center>")),
-                tags$div(HTML("<center><p><a href=\"https://zenodo.org/badge/latestdoi/366181795\"><img src=\"https://zenodo.org/badge/366181795.svg\" alt=\"DOI\"></a></p></center>")),
+                tags$div(HTML("<center><p><a href=\"https://creativecommons.org/licenses/by/4.0/\"><img src=\"https://img.shields.io/badge/License-CC%20BY-blue\"></a></p></center>")),
+                tags$div(HTML("<center><p><a href=\"https://doi.org/10.5281/zenodo.5637094\"><img src=\"https://img.shields.io/badge/DOI-10.5281/zenodo.5637094-blue\"></a></p></center>")),
                 
                 tags$div(HTML("<center><p>Select a species and hit \"Update\"</p><p>You can also filter species by country or add occurrence records/niche models with the check boxes.</p></center>")),
                 selectizeInput(inputId = "countries", label = h4("Country:"), choices = countries_list,
