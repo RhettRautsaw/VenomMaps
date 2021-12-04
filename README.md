@@ -1,4 +1,4 @@
-# VenomMaps: Updated Distribution Maps and Niche Models for New World Pitvipers (Crotalinae)
+# VenomMaps: Updated Species Distribution Maps and Models for New World Pitvipers (Crotalinae)
 <img align="right" src="www/VenomMaps.png" width=150>
 
 ### Rhett M. Rautsaw, Gustavo Jiménez-Velázquez, Erich P. Hofmann, Laura R. V. Alencar, Christoph I. Grünwald, Marcio Martins, Paola Carrasco, Tiffany M. Doan, & Christopher L. Parkinson
@@ -16,11 +16,11 @@
   - [`data/occurrence`](https://github.com/RhettRautsaw/VenomMaps/tree/master/data/occurrence)
 - Updated distribution maps in `geojson` format for all New World Pitvipers as well as distribution maps for Old World Vipers from [Roll et al. 2017](https://www.nature.com/articles/s41559-017-0332-2).
   - [`data/distributions`](https://github.com/RhettRautsaw/VenomMaps/tree/master/data/distributions)
-- Final niche models for all New World pitvipers
-  - [`data/enms`](https://github.com/RhettRautsaw/VenomMaps/tree/master/data/enms)
-- Code used to clean occurrence records, construct distribution maps, and summarize enm results.
+- Final species distribution models for all New World pitvipers
+  - [`data/sdms`](https://github.com/RhettRautsaw/VenomMaps/tree/master/data/sdms)
+- Code used to clean occurrence records, construct distribution maps, and summarize sdm results.
   - [`code/*`](https://github.com/RhettRautsaw/VenomMaps/tree/master/code)
-- Code used to construct ecological niche models
+- Code used to construct species distribution models
   - [`code/autokuenm/*`](https://github.com/RhettRautsaw/VenomMaps/tree/master/code/autokuenm)
 - Shiny App to visualize results
   - [`app.R`](https://RhettRautsaw.app/shiny/VenomMaps/)
@@ -42,7 +42,7 @@ You can enter a **Country** or **Species** into the boxes on the right side of t
 
 <img align="center" src="www/screenshot2.png" width=100%>
 
-The box in the lower left corner (1) has alternate basemaps on which to view the distribution. You can also plot the **Niche Model** (2) and **Occurrence Points** (3) by checking those boxes on the right side of the page, then hitting **Update** (4) again. However, please note that niche models are large and take a long time to plot. Please be patient. Alternatively, you can download this repository and run the Shiny App locally for faster plotting (see below). 
+The box in the lower left corner (1) has alternate basemaps on which to view the distribution. You can also plot the **Species Distribution Model** (2) and **Occurrence Points** (3) by checking those boxes on the right side of the page, then hitting **Update** (4) again. However, please note that SDMs are large and take a long time to plot. Please be patient. Alternatively, you can download this repository and run the Shiny App locally for faster plotting (see below). 
 
 <img align="center" src="www/screenshot3.png" width=100%>
 

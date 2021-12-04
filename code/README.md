@@ -26,7 +26,8 @@ This repository contains the code used to
         (occ\_cleaner.R)](#occurence-point-cleaner-occ_cleaner.r)
       - [Manual Check](#manual-check)
   - [Final Occurrence Counts](#final-occurrence-counts)
-  - [Summarizing ENM Results](#summarizing-enm-results)
+  - [Species Distribution Modeling](#species-distribution-modeling)
+  - [Summarizing SDM Results](#summarizing-sdm-results)
       - [Averaging Selected Final
         Models](#averaging-selected-final-models)
       - [Gathering Final Model
@@ -35,7 +36,7 @@ This repository contains the code used to
       - [Summary Statistics](#summary-statistics)
       - [Plotting AUC and Variable
         Contributions](#plotting-auc-and-variable-contributions)
-      - [Plotting Example Niche Models](#plotting-example-niche-models)
+      - [Plotting Example SDMs](#plotting-example-sdms)
       - [Plotting Example Bioclim vs. Combo
         Model](#plotting-example-bioclim-vs.-combo-model)
       - [Summarizing Mean Combo Models (Supplemental Table
@@ -107,8 +108,7 @@ custom<-read_xlsx("occ_databases/custom/combined_db.xlsx")
 
 Databases were cleaned to include the following columns
 
-`ID, species, subspecies, locality, latitude, longitude, accuracy,
-source, voucher, issues/notes`
+`ID, species, subspecies, locality, latitude, longitude, accuracy, source, voucher, issues/notes`
 
 ``` r
 gbif2<- gbif %>% #[gbif$species %in% synonyms2,] %>% 
@@ -645,7 +645,16 @@ occ <- occ %>% group_by(final_species) %>% distinct(latitude,longitude, .keep_al
 save.image("~/Dropbox/GitHub/ShinyServer/Apps/VenomMaps/shiny_support_material/shiny-data_2021-10-13.RData")
 ```
 
-# Summarizing ENM Results
+# Species Distribution Modeling
+
+See information on
+[autokuenm](https://github.com/RhettRautsaw/VenomMaps/tree/master/code/autokuenm).
+
+Models were output from MaxEnt in logistic format; however, you can
+easily convert to the raw format using the functions provided in
+`convertSDMs.R`
+
+# Summarizing SDM Results
 
 ## Averaging Selected Final Models
 
@@ -721,10 +730,10 @@ write.csv(results, "Final_Results/best_candidate_models_OR_AICc.csv", row.names 
 ``` r
 ## Manually separated "files" and "Model_Name" columns into "Species", "testSet", "regMult", "featureTypes", "envSet"
 
-tmp1<-read.csv("Final/enms/allModelResults2.csv")
-tmp2<-read.csv("Final/enms/best_candidate_models_OR_AICc2.csv")
+tmp1<-read.csv("Final/sdms/allModelResults2.csv")
+tmp2<-read.csv("Final/sdms/best_candidate_models_OR_AICc2.csv")
 colnames(tmp2)[-(1:6)]<- paste("Candidate", colnames(tmp2)[-(1:6)], sep="_")
-tmp3<-read.csv("Final/enms/fm_evaulation_results2.csv")
+tmp3<-read.csv("Final/sdms/fm_evaulation_results2.csv")
 colnames(tmp3)[-(1:6)]<- paste("Final", colnames(tmp3)[-(1:6)], sep="_")
 
 tmp4<-merge(tmp1,tmp2)
@@ -759,7 +768,7 @@ colList<-c("Species","testSet","Model_Name","regMult","featureTypes","envSet",
 
 data<-data[,colList]
 
-write.csv(data, "Final/enms/tmp_supplemental_table_1.1.csv", row.names = F)
+write.csv(data, "Final/sdms/tmp_supplemental_table_1.1.csv", row.names = F)
 ```
 
 ## Summary Statistics
@@ -852,7 +861,7 @@ C<-as.ggplot(pheatmap(t(as.matrix(envContrib2)), cluster_rows = F, cluster_cols 
 (A+B)/C + plot_layout(heights = c(2,1)) + plot_annotation(tag_levels = 'A')
 ```
 
-## Plotting Example Niche Models
+## Plotting Example SDMs
 
 ``` r
 example_plots<-c("Agkistrodon_bilineatus", "Bothriechis_schlegelii", "Bothrops_jararaca", "Cerrophidion_godmani", "Crotalus_cerastes", "Lachesis_muta", "Metlapilcoatlus_nummifer", "Porthidium_nasutum", "Sistrurus_miliarius")
@@ -869,7 +878,7 @@ rasCol=colorRampPalette(brewer.pal(9,"Greens"))(100)
 
 for(i in 1:length(example_plots)){
   tmp_shp<-st_read(paste0("~/Dropbox/GitHub/ShinyServer/Apps/VenomMaps/data/distributions/", example_plots[i],".geojson"), crs=4326)
-  tmp<-raster(paste0("Final/enms/Final_Models_topvars/",example_plots[i],"_avg.tif"))
+  tmp<-raster(paste0("Final/sdms/Final_Models_topvars/",example_plots[i],"_avg.tif"))
   xlim_p=c(st_bbox(tmp)[1], st_bbox(tmp)[3])
   ylim_p=c(st_bbox(tmp)[2], st_bbox(tmp)[4])
   A<-ggplot() + layer_spatial(tmp) + scale_fill_gradientn("P(Occurrence)", colours = rasCol, na.value=NA, limits=c(0,1)) + 
@@ -902,8 +911,8 @@ dev.off()
 ## Plotting Example Bioclim vs. Combo Model
 
 ``` r
-bioclim<-raster("Final/enms/Final_Models_bioclim/Agkistrodon_piscivorus_avg.tif")
-combo<-raster("Final/enms/Final_Models_topvars/Agkistrodon_piscivorus_avg.tif")
+bioclim<-raster("Final/sdms/Final_Models_bioclim/Agkistrodon_piscivorus_avg.tif")
+combo<-raster("Final/sdms/Final_Models_topvars/Agkistrodon_piscivorus_avg.tif")
 
 xlim_p=c(st_bbox(bioclim)[1], st_bbox(bioclim)[3])
 ylim_p=c(st_bbox(bioclim)[2], st_bbox(bioclim)[4])
@@ -934,7 +943,7 @@ data3.2<-data_combo %>% dplyr::select(c(1,4,5)) %>% distinct() %>%
 data4<-merge(data3.1, data3.2)
 data4<-merge(data4, data_mean_combo, by="Species")
 
-write.csv(data4, "Final/enms/tmp_supplemental_table_1.2.csv", row.names = F)
+write.csv(data4, "Final/sdms/tmp_supplemental_table_1.2.csv", row.names = F)
 ```
 
 # References

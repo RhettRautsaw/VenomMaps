@@ -86,7 +86,7 @@ ui <- navbarPage("VenomMaps", id="nav",
                 tags$div(HTML("<center><p><a href=\"https://creativecommons.org/licenses/by/4.0/\"><img src=\"https://img.shields.io/badge/License-CC%20BY-blue\"></a></p></center>")),
                 tags$div(HTML("<center><p><a href=\"https://doi.org/10.5281/zenodo.5637094\"><img src=\"https://img.shields.io/badge/DOI-10.5281/zenodo.5637094-blue\"></a></p></center>")),
                 
-                tags$div(HTML("<center><p>Select a species and hit \"Update\"</p><p>You can also filter species by country or add occurrence records/niche models with the check boxes.</p></center>")),
+                tags$div(HTML("<center><p>Select a species and hit \"Update\"</p><p>You can also filter species by country or add occurrence records/SDMs with the check boxes.</p></center>")),
                 selectizeInput(inputId = "countries", label = h4("Country:"), choices = countries_list,
                                multiple = TRUE),
                 selectizeInput(inputId = "species", label = h4("Species:"), choices = species_list, 
@@ -96,7 +96,7 @@ ui <- navbarPage("VenomMaps", id="nav",
                 
                 h5("____________________________________"),
                 
-                checkboxInput("niche", "Niche Model", FALSE),
+                checkboxInput("niche", "Species Distribution Model", FALSE),
                 
                 checkboxInput("nodist", "Clear Distribution", FALSE),
                 
@@ -216,14 +216,14 @@ server<-function(input, output, session) {
     
     # Load ENMs
     niche<-reactive({
-        if((input$niche) & length(list.files("data/enms_p", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T))>1){
-            files<-list.files("data/enms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T)
+        if((input$niche) & length(list.files("data/sdms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T))>1){
+            files<-list.files("data/sdms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T)
             combined_niches<-stack_diff_extents(files)
             names(combined_niches)<-gsub("_avg","",names(combined_niches))
             # crs(combined_niches)<-CRS("+init=epsg:4326")
             max(combined_niches, na.rm = TRUE)
-        }else if((input$niche) & length(list.files("data/enms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T))==1){
-            files<-list.files("data/enms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T)
+        }else if((input$niche) & length(list.files("data/sdms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T))==1){
+            files<-list.files("data/sdms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T)
             combined_niches<-raster(files)
             names(combined_niches)<-gsub("_avg","",names(combined_niches))
             combined_niches
