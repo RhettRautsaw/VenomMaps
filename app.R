@@ -56,7 +56,9 @@ info<-read_xlsx("supplemental_material/SupplementalTable1.xlsx", sheet=1)
 source("shiny_support_material/stack_diff_extents.R")
 
 #brPal <- colorRampPalette(c('#008B00FF', '#008B0000', '#008B0000'), alpha=T)
-brPal <- colorRampPalette(c('#00A600FF', '#61C500BF', '#E6E40280', '#ECB17640', '#F2F2F200'), alpha=T)
+#brPal <- colorRampPalette(c('#00A600FF', '#61C500BF', '#E6E40280', '#ECB17640', '#F2F2F200'), alpha=T)
+#brPal <- colorRampPalette(c("#BD0026FF", "#F03B20BF", "#FD8D3C80", "#FECC5C40", "#FFFFB200"), alpha=T)
+brPal <- colorRampPalette(c("#440154FF", "#3B528BCC", "#21908C99", "#5DC86366", "#FDE72500"), alpha=T)
 pal <- brPal(255)
 
 species_list<-unique(sort(as.vector(info$species)))
@@ -98,10 +100,11 @@ ui <- navbarPage("VenomMaps", id="nav",
                 
                 checkboxInput("niche", "Species Distribution Model", FALSE),
                 
+                p("To view SDMs, we recommend checking the box below to remove distribution polygons and changing the basemap to \"Terrain\""),
                 checkboxInput("nodist", "Clear Distribution", FALSE),
                 
-                p("Select \"Update\" again after checking this box"),
-                p("Please be patient. These large files can take a while to plot."),
+                p("Select \"Update\" again after checking these boxes"),
+                p("Please be patient. SDMs are large and can take a while to plot."),
                 
                 h5("____________________________________"),
                 
@@ -121,7 +124,14 @@ ui <- navbarPage("VenomMaps", id="nav",
                 h5("Acknowledgements:"),
                 p("Distributions of Old World Viperidae were obtained from ", a(href="https://www.nature.com/articles/s41559-017-0332-2", "GARD 1.1")),
                 p("Information on max snake lengths was obtained from ", a(href="https://onlinelibrary.wiley.com/doi/abs/10.1111/geb.12398", "Feldman et al. 2015")),
-                p("Information on descriptive citations, common names, and subspecies was obtained from the ", a(href="https://reptile-database.reptarium.cz/", "Reptile Database"))
+                p("Information on descriptive citations, common names, and subspecies was obtained from the ", a(href="https://reptile-database.reptarium.cz/", "Reptile Database")),
+                
+                #h5("____________________________________"),
+                
+                #h5("Donations:"),
+                #p("There is a large annual fee to maintain this server. We appreciate all the help we can get."),
+                #p("Donate on ", a(href="https://venmo.com/u/RhettRautsaw", "Venmo"), " with the word \"VenomMaps\"")
+                
             )
         )
     ),
