@@ -38,17 +38,64 @@ After opening the app you should be greeted with the following page:
 
 <img align="center" src="www/screenshot1.png" width=100%>
 
-You can enter a **Country** or **Species** into the boxes on the right side of the page. Multiple countries/species can be input at once! The **Country** box is used to filter the **Species** options to only those found in that country. Once you have a **Species** (1) selected, you can scroll down and hit **Update** (2) to quickly plot the distribution.
+<br>
+
+*** 
+
+<br>
+
+Next, (1) enter a **Species** into the box on the right and (2) hit **Update** to plot the distribution. 
+Multiple species can be input at once! 
 
 <img align="center" src="www/screenshot2.png" width=100%>
 
-The box in the lower left corner (1) has alternate basemaps on which to view the distribution. You can also plot the **Species Distribution Model** (2) and **Occurrence Points** (3) by checking those boxes on the right side of the page, then hitting **Update** (4) again. However, please note that SDMs are large and take a long time to plot. Please be patient. Alternatively, you can download this repository and run the Shiny App locally for faster plotting (see below). 
+<br>
 
-<img align="center" src="www/screenshot3.png" width=100%>
+*** 
+
+<br>
+
+You can filter the list of species in the **Species** box by country and available SDMs. 
+For example, (1) entering "United States of America" in the **Country** box and 
+(2) checking the box for the **Logistic Model** will filter the (4) **Species** box to only show species that fit these criteria. 
+
+If you only want to view the SDM rather than the distribution polygon + SDM, you can (3) check the **Clear Distribution** box.
+Remember to (5) **Update** to make the changes. 
+
+Please note that SDMs are large and take a long time to plot. Please be patient. Alternatively, you can download this repository and run the Shiny App locally for faster plotting (see below). 
+
+The box in the lower left corner (6) has alternate basemaps on which to view the data. 
+We recommend changing to the "Terrain" map to view SDMs. 
+
+Lastly, a table with SDM statistics (7) will continuously update based on the (4) **Species** selected.
+
+<img align="center" src="www/screenshot3.1.png" width=100%>
+
+<br>
+
+*** 
+
+<br>
+
+You can also plot the 10th percentile training threshold models and although it is not shown, you can also add **Occurrence Records**.
+
+<img align="center" src="www/screenshot3.2.png" width=100%>
+
+<br>
+
+*** 
+
+<br>
 
 You can download the distribution map using the **Download Shapefile** option. There is also a second tab at the top of the page (**General Information**) which will give you some more information such as the common name, tell you when the species was described, subspecies, and the maximum length for the species compared to all other viper species:
 
 <img align="center" src="www/screenshot4.png" width=100%>
+
+<br>
+
+*** 
+
+<br>
 
 ## Running the Application Locally
 
