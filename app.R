@@ -51,13 +51,11 @@ point_pal <- colorFactor(c("red2", "gray75", "darkturquoise", "khaki2"), domain 
 load("shiny_support_material/shiny-data_2021-10-25.RData")
 source("shiny_support_material/addRasterImage2.R")
 
-#info<-read_csv("shiny_support_material/ViperInfo.csv")
 info<-read_xlsx("supplemental_material/SupplementalTable1.xlsx", sheet=1)
+modelinfo<-read_xlsx("supplemental_material/SupplementalTable1.xlsx", sheet="final_results")
+avail_sdms=modelinfo %>% filter(SDM =="Yes") %>% select(Species) %>% arrange(Species) %>% distinct() %>% pull(Species)
 source("shiny_support_material/stack_diff_extents.R")
 
-#brPal <- colorRampPalette(c('#008B00FF', '#008B0000', '#008B0000'), alpha=T)
-#brPal <- colorRampPalette(c('#00A600FF', '#61C500BF', '#E6E40280', '#ECB17640', '#F2F2F200'), alpha=T)
-#brPal <- colorRampPalette(c("#BD0026FF", "#F03B20BF", "#FD8D3C80", "#FECC5C40", "#FFFFB200"), alpha=T)
 brPal <- colorRampPalette(c("#440154FF", "#3B528BCC", "#21908C99", "#5DC86366", "#FDE72500"), alpha=T)
 pal <- brPal(255)
 
@@ -80,7 +78,7 @@ ui <- navbarPage("VenomMaps", id="nav",
             
             absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
                 draggable = TRUE, top = 60, left = "auto", right = 20, bottom = 50,
-                width = 330, style = "overflow-y: scroll;",
+                width = 400, style = "overflow-y: scroll;",
                 img(src = "VenomMaps.png", height = 300, width = 250, style="display: block; margin-left: auto; margin-right: auto"),
 
                 tags$div(HTML("<br><center><p><a href=\"https://github.com/RhettRautsaw/VenomMaps\"><img src=\"https://img.shields.io/badge/GitHub-RhettRautsaw/VenomMaps-blue\"></a></p></center>")),
@@ -88,17 +86,26 @@ ui <- navbarPage("VenomMaps", id="nav",
                 tags$div(HTML("<center><p><a href=\"https://creativecommons.org/licenses/by/4.0/\"><img src=\"https://img.shields.io/badge/License-CC%20BY-blue\"></a></p></center>")),
                 tags$div(HTML("<center><p><a href=\"https://doi.org/10.5281/zenodo.5637094\"><img src=\"https://img.shields.io/badge/DOI-10.5281/zenodo.5637094-blue\"></a></p></center>")),
                 
-                tags$div(HTML("<center><p>Select a species and hit \"Update\"</p><p>You can also filter species by country or add occurrence records/SDMs with the check boxes.</p></center>")),
-                selectizeInput(inputId = "countries", label = h4("Country:"), choices = countries_list,
-                               multiple = TRUE),
                 selectizeInput(inputId = "species", label = h4("Species:"), choices = species_list, 
                                multiple = TRUE),
                 
                 actionButton("update", "Update"),
                 
-                h5("____________________________________"),
+                h4("____________________________________"),
                 
-                checkboxInput("niche", "Species Distribution Model", FALSE),
+                h3("Filters"),
+                
+                h5("Optional: Filter species by country or include SDMs/occurrence records."),
+                h5("Note that making changes in this section will alter the species list and any prior selections."),
+                
+                selectizeInput(inputId = "countries", label = h5("Country:"), choices = countries_list, multiple = TRUE),
+                
+                h4("- - - - - - - - - - - - - - - - - - - - - - - - - - - -"),
+                
+                h5("Species Distribution Models"),
+                p("These are currently only available for New World pitvipers"),
+                checkboxInput("niche", "Logistic Model", FALSE),
+                checkboxInput("thresh", "Threshold Model", FALSE),
                 
                 p("To view SDMs, we recommend checking the box below to remove distribution polygons and changing the basemap to \"Terrain\""),
                 checkboxInput("nodist", "Clear Distribution", FALSE),
@@ -106,29 +113,33 @@ ui <- navbarPage("VenomMaps", id="nav",
                 p("Select \"Update\" again after checking these boxes"),
                 p("Please be patient. SDMs are large and can take a while to plot."),
                 
-                h5("____________________________________"),
+                tableOutput('nichestats'),
                 
-                checkboxInput("points", "Occurrence Points", FALSE), # and Heatmap
+                h4("- - - - - - - - - - - - - - - - - - - - - - - - - - - -"),
+                
+                h5("Occurrence Records"),
+                
+                checkboxInput("points", "Display", FALSE), # and Heatmap
                 p("Select \"Update\" again after checking this box"),
                 p("Red: points are dubious/questionable"),
                 p("Gray: points are beyond their distribution"),
                 p("Blue: points are not on land"),
                 p("Yellow: species ID has been altered"),
                 
-                h5("____________________________________"),
+                h4("____________________________________"),
 
                 downloadButton("downloadDist", "Download Shapefile"),
                 
-                h5("____________________________________"),
+                h4("____________________________________"),
                 
-                h5("Acknowledgements:"),
+                h3("Acknowledgements"),
                 p("Distributions of Old World Viperidae were obtained from ", a(href="https://www.nature.com/articles/s41559-017-0332-2", "GARD 1.1")),
                 p("Information on max snake lengths was obtained from ", a(href="https://onlinelibrary.wiley.com/doi/abs/10.1111/geb.12398", "Feldman et al. 2015")),
                 p("Information on descriptive citations, common names, and subspecies was obtained from the ", a(href="https://reptile-database.reptarium.cz/", "Reptile Database")),
                 
-                #h5("____________________________________"),
+                #h4("____________________________________"),
                 
-                #h5("Donations:"),
+                #h3("Donations:"),
                 #p("There is a large annual fee to maintain this server. We appreciate all the help we can get."),
                 #p("Donate on ", a(href="https://venmo.com/u/RhettRautsaw", "Venmo"), " with the word \"VenomMaps\"")
                 
@@ -192,10 +203,20 @@ server<-function(input, output, session) {
     # Update species list by country selection
     new_species_list<-reactive({
         if(is.null(input$countries)){
-            info %>% select(species) %>% arrange(species) %>% distinct() %>% pull(species)
+            sp_list = info %>% select(species) %>% arrange(species) %>% distinct()
+            if(input$niche | input$thresh){
+                sp_list %>% filter(species %in% avail_sdms) %>% pull(species)
+            }else{
+                sp_list %>% pull(species)
+            }
         }else{
-            info %>% filter(grepl(paste(input$countries,collapse="|"), countries)) %>%
-                     select(species) %>% arrange(species) %>% distinct() %>% pull(species)
+            sp_list = info %>% filter(grepl(paste(input$countries,collapse="|"), countries)) %>%
+                     select(species) %>% arrange(species) %>% distinct()
+            if(input$niche | input$thresh){
+                sp_list %>% filter(species %in% avail_sdms) %>% pull(species)
+            }else{
+                sp_list %>% pull(species)
+            }
         }
     })
     
@@ -213,27 +234,24 @@ server<-function(input, output, session) {
         }
     })
     
-    # Filter enms
-    # niche<-reactive({
-    #     if((input$niche) & any(input$species %in% names(combined_niches))){
-    #         #raster::subset(combined_niches, input$species)
-    #         tmp<-combined_niches[[which(names(combined_niches) %in% input$species)]]
-    #         max(tmp, na.rm = TRUE)
-    #     }else{
-    #         vector(mode="numeric", length=0)
-    #     }
-    # })
-    
-    # Load ENMs
+    # Load SDMs
     niche<-reactive({
-        if((input$niche) & length(list.files("data/sdms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T))>1){
-            files<-list.files("data/sdms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T)
+        if((input$niche) | (input$thresh) & length(list.files("data/sdms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T))>1){
+            if(input$thresh){
+                files<-list.files("data/sdms", paste0(input$species,"_avg_cloglog_p10b.tif", collapse = "|"), full.names = T)
+            }else{
+                files<-list.files("data/sdms", paste0(input$species,"_avg_cloglog.tif", collapse = "|"), full.names = T)
+            }
             combined_niches<-stack_diff_extents(files)
             names(combined_niches)<-gsub("_avg","",names(combined_niches))
             # crs(combined_niches)<-CRS("+init=epsg:4326")
             max(combined_niches, na.rm = TRUE)
-        }else if((input$niche) & length(list.files("data/sdms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T))==1){
-            files<-list.files("data/sdms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T)
+        }else if((input$niche) | (input$thresh) & length(list.files("data/sdms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T))==1){
+            if(input$thresh){
+                files<-list.files("data/sdms", paste0(input$species,"_avg_cloglog_p10b.tif", collapse = "|"), full.names = T)
+            }else{
+                files<-list.files("data/sdms", paste0(input$species,"_avg_cloglog.tif", collapse = "|"), full.names = T)
+            }
             combined_niches<-raster(files)
             names(combined_niches)<-gsub("_avg","",names(combined_niches))
             combined_niches
@@ -241,6 +259,8 @@ server<-function(input, output, session) {
             vector(mode="numeric", length=0)
         }
     })
+    
+    output$nichestats <- renderTable(modelinfo %>% filter(Species  %in% input$species) %>% select(Species, AUC_ratio=Mean_AUC_ratio, Omis_Rate=Omission_rate_at_5.))
     
     # Download geojson button
     output$downloadDist <- downloadHandler(
@@ -285,14 +305,9 @@ server<-function(input, output, session) {
                                     options = pathOptions(pane = "points"),
                                     #clusterOptions = markerClusterOptions(),
                                     popup = lapply(labs, htmltools::HTML)) #%>%
-                    # addHeatmap(data=pointsData,
-                    #             lng=~as.numeric(longitude),
-                    #             lat=~as.numeric(latitude),
-                    #             radius = 30,
-                    #             blur=60)
             }
         }
-        if(input$niche){
+        if(input$niche | input$thresh){
             if(length(niche())!=0){
                 if(input$nodist){
                     leafletProxy("map") %>%

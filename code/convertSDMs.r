@@ -12,6 +12,11 @@ raw2log<-function(R,h){
   return(l)
 }
 
+raw2clog<-function(R,h){
+  c<-1-(exp(-exp(h)*R))
+  return(c)
+}
+
 log2raw<-function(l,h){
   R=-((exp(-h)*l)/(l-1))
   return(R)

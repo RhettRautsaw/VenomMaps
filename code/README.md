@@ -6,42 +6,37 @@ This repository contains the code used to
 
 # Table of Contents
 
-  - [Prep](#prep)
-      - [Synonyms List](#synonyms-list)
-  - [Collecting Occurrence Records](#collecting-occurrence-records)
-      - [Filtering Databases](#filtering-databases)
-      - [Combining Databases](#combining-databases)
-      - [Cleaning `subspecies` Column](#cleaning-subspecies-column)
-      - [Updating Taxonomy](#updating-taxonomy)
-  - [Constructing Distribution Maps](#constructing-distribution-maps)
-      - [Combining Databases](#combining-databases-1)
-      - [qGIS](#qgis)
-      - [Smooth & Clip Distributions](#smooth-clip-distributions)
-      - [Extract Country Information for Each
-        Species](#extract-country-information-for-each-species)
-  - [Spatial Join Correction](#spatial-join-correction)
-      - [Reference Phylogeny
-        (bind.tip2.R)](#reference-phylogeny-bind.tip2.r)
-      - [Occurence Point Cleaner
-        (occ\_cleaner.R)](#occurence-point-cleaner-occ_cleaner.r)
-      - [Manual Check](#manual-check)
-  - [Final Occurrence Counts](#final-occurrence-counts)
-  - [Species Distribution Modeling](#species-distribution-modeling)
-  - [Summarizing SDM Results](#summarizing-sdm-results)
-      - [Averaging Selected Final
-        Models](#averaging-selected-final-models)
-      - [Gathering Final Model
-        Statistics](#gathering-final-model-statistics)
-      - [Combine Dataframes](#combine-dataframes)
-      - [Summary Statistics](#summary-statistics)
-      - [Plotting AUC and Variable
-        Contributions](#plotting-auc-and-variable-contributions)
-      - [Plotting Example SDMs](#plotting-example-sdms)
-      - [Plotting Example Bioclim vs. Combo
-        Model](#plotting-example-bioclim-vs.-combo-model)
-      - [Summarizing Mean Combo Models (Supplemental Table
-        1)](#summarizing-mean-combo-models-supplemental-table-1)
-  - [References](#references)
+-   [Prep](#prep)
+    -   [Synonyms List](#synonyms-list)
+-   [Collecting Occurrence Records](#collecting-occurrence-records)
+    -   [Filtering Databases](#filtering-databases)
+    -   [Combining Databases](#combining-databases)
+    -   [Cleaning `subspecies` Column](#cleaning-subspecies-column)
+    -   [Updating Taxonomy](#updating-taxonomy)
+-   [Constructing Distribution Maps](#constructing-distribution-maps)
+    -   [Combining Databases](#combining-databases-1)
+    -   [qGIS](#qgis)
+    -   [Smooth & Clip Distributions](#smooth--clip-distributions)
+    -   [Extract Country Information for Each Species](#extract-country-information-for-each-species)
+-   [Spatial Join Correction](#spatial-join-correction)
+    -   [Reference Phylogeny (bind.tip2.R)](#reference-phylogeny-bindtip2r)
+    -   [Occurence Point Cleaner (occ_cleaner.R)](#occurence-point-cleaner-occ_cleanerr)
+    -   [Manual Check](#manual-check)
+-   [Final Occurrence Counts](#final-occurrence-counts)
+-   [Ecological Niche Modelling](#ecological-niche-modelling)
+    -   [Spatial Bias File](#spatial-bias-file)
+    -   [spThin criteria creation](#spthin-criteria-creation)
+-   [Summarizing ENM Results](#summarizing-enm-results)
+    -   [Gathering Final Models & Statistics](#gathering-final-models--statistics)
+    -   [Analyzing Results](#analyzing-results)
+    -   [Calibration Models](#calibration-models)
+    -   [Final Models](#final-models)
+    -   [Variable Contributions](#variable-contributions)
+    -   [Plotting Example Niche Models](#plotting-example-niche-models)
+    -   [Plotting Example Theshold Models](#plotting-example-theshold-models)
+    -   [Plotting Example Bioclim vs. Combo Model](#plotting-example-bioclim-vs-combo-model)
+    -   [Plotting Example Bioclim vs. Topo vs. Combo Models](#plotting-example-bioclim-vs-topo-vs-combo-models)
+-   [References](#references)
 
 
 # Prep
@@ -71,7 +66,7 @@ library(patchwork)
 
 I obtained a list of all synonyms for species in “Crotalinae” from the
 [Reptile Database (May 2020)](http://www.reptile-database.org/) (Thanks
-Peter Uetz\!) and combined this with a full list of viper species to
+Peter Uetz!) and combined this with a full list of viper species to
 create a long list of synonyms.
 
 ``` r
@@ -269,7 +264,7 @@ combined_data5 <- combined_data4 %>%
 ```
 
 Taxonomy was then manually checked and further cleaned
-(combined\_records\_v1).
+(combined_records_v1).
 
 # Constructing Distribution Maps
 
@@ -279,8 +274,8 @@ Preliminary distribution maps were obtained from
 Mexico)](https://www.chimaira.de/herpetofauna-mexicana-vol-1-snakes-of-mexico.html?___store=english&___from_store=default)
 provided by Christoph Grünwald and Jason Jones of
 [HerpMX](http://herp.mx/), [Roll et
-al. 2017](https://www.nature.com/articles/s41559-017-0332-2), and
-custom distribution maps made previously.
+al. 2017](https://www.nature.com/articles/s41559-017-0332-2), and custom
+distribution maps made previously.
 
 ``` r
 #IUCN<-readOGR("shp_databases/IUCN/REPTILES.shp")
@@ -547,7 +542,7 @@ tree<-bind.tip2(tree,"Sistrurus_tergeminus", sp1="Sistrurus_catenatus", perc=0.5
 write.tree(tree,"Viperidae.newick")
 ```
 
-## Occurence Point Cleaner (occ\_cleaner.R)
+## Occurence Point Cleaner (occ_cleaner.R)
 
 Next I developed `occ_cleaner` which will do all the work for me
 including overlapping the points with the distributions, calculating
@@ -557,20 +552,19 @@ geographic distance.
 To run this function you need:
 
 1.  Range maps in class `sf` in crs: 3857 or other projected CRS
-      - `ranges<-st_read(dsn="file.geojson")`
-      - `ranges<-st_transform(ranges,crs=3857)`
+    -   `ranges<-st_read(dsn="file.geojson")`
+    -   `ranges<-st_transform(ranges,crs=3857)`
 2.  Phylogeny in class `phylo`
-      - `tree<-read.tree("tree.newick")`
+    -   `tree<-read.tree("tree.newick")`
 3.  Occurrence records in class `sf` in crs:3857 or other projected CRS
-      - `points<-read.csv("file.csv")`
-      - `points<-st_as_sf(points,coords=c("longitude","latitude"),
-        crs=4326)`
-      - `points<-st_transform(points, crs=3857)`
+    -   `points<-read.csv("file.csv")`
+    -   `points<-st_as_sf(points,coords=c("longitude","latitude"), crs=4326)`
+    -   `points<-st_transform(points, crs=3857)`
 
 I also took this opportunity to combine all my distribution maps into
-one file (`Viper_Distributions.geojson`). *WARNING: occ\_cleaner can
-take a very long time with many records. To speed this up I ran
-`occ_cleaner` on a super computer with 80 cores and 1500 GB of RAM*
+one file (`Viper_Distributions.geojson`). *WARNING: occ_cleaner can take
+a very long time with many records. To speed this up I ran `occ_cleaner`
+on a super computer with 80 cores and 1500 GB of RAM*
 
 ``` r
 source("occ_cleaner.R")
@@ -609,7 +603,7 @@ write.csv(overlap, "occ_databases/z_combined_records/overlap.csv")
 Removed all idigbio records because they were too messy.
 gbif.canonicalNames did not match actual species ID and alternate
 columns contained chaotic additional information (*e.g.*, (Author Year),
-Author Year, Genus genus species species). Final version –\> v4
+Author Year, Genus genus species species). Final version –> v4
 
 # Final Occurrence Counts
 
@@ -645,64 +639,99 @@ occ <- occ %>% group_by(final_species) %>% distinct(latitude,longitude, .keep_al
 save.image("~/Dropbox/GitHub/ShinyServer/Apps/VenomMaps/shiny_support_material/shiny-data_2021-10-13.RData")
 ```
 
-# Species Distribution Modeling
+# Ecological Niche Modelling
+
+## Spatial Bias File
+
+<https://scottrinnan.wordpress.com/2015/08/31/how-to-construct-a-bias-file-with-r-for-use-in-maxent-modeling/>
+
+``` r
+library(dismo) # interface with MaxEnt
+library(raster) # spatial data manipulation
+library(MASS) # for 2D kernel density function
+library(magrittr) # for piping functionality, i.e., %>%
+library(maptools) # reading shapefiles
+library(tidyverse)
+library(sf)
+occ<-read_csv("autokuenm/combined_records_v4_clean.csv") %>% distinct(final_species, latitude, longitude) #mutate(fakeID="all") %>% dplyr::select(fakeID, everything()) %>%
+env<-raster("autokuenm/tifs/wc2.0_bio_30s_01.tif")
+occ2<-st_as_sf(occ, coords=c("longitude","latitude"), crs=4326)
+occ3<-st_crop(occ2, extent(env))
+occ.ras <- rasterize(as_Spatial(occ3), env, 1)
+presences <- which(values(occ.ras) == 1)
+pres.locs <- coordinates(occ.ras)[presences, ]
+
+dens <- kde2d(pres.locs[,1], pres.locs[,2], n = c(nrow(occ.ras), ncol(occ.ras)))
+dens.ras <- raster(dens)
+plot(dens.ras)
+writeRaster(dens.ras, "autokuenm/SpatialBias.tif")
+
+dens.ras<-raster("autokuenm/SpatialBias.tif")
+new<-projectRaster(dens.ras, env)
+new[is.na(new[])] <- 0 
+# crs(dens.ras)<-crs(env)
+# new<-resample(dens.ras, env)
+bias_new<-round(new*1000, digits = 3)
+writeRaster(bias_new, "autokuenm/SpatialBias_resamp.tif")
+```
+
+## spThin criteria creation
+
+``` r
+## First looked at the relationship between the distribution size and the number of occurrence records
+suppressMessages(occ <- read_csv("combined_records_v4_clean.csv"))
+dist<-sf::st_read("../Viper_Distributions.geojson",crs=4326, quiet=T)
+dist$area<-as.numeric(st_area(st_transform(dist, crs=3857)))
+tmp3<-st_set_geometry(dist,NULL)
+tmp3=tmp3[,c("Species","area")] %>% group_by(Species) %>% summarize(area=sum(area))
+tmp2=occ %>% group_by(final_species) %>% summarize(count=n()) %>% rename(Species=final_species)
+tmp4=left_join(tmp2,tmp3)
+mod<-lm(log(count)~log(area), tmp4)
+ggscatter(tmp4, "area", "count", conf.int=T, add="reg.line", xlab="Log10(Area) [m^2]", ylab="Log10(Occurrences)") + xscale("log10", .format = T) + yscale("log10") + stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")))
+
+
+## Then used the occurrence records to build a linear model with a maximum spatial thinning parameter of 25 km
+tmp2=occ %>% group_by(final_species) %>% summarize(count=n())
+tmp<-data.frame(V1=c(1,30000), V2=c(0,25))
+mod<-lm(V2~log(V1), data=tmp)
+as.numeric(floor(predict(mod, data.frame(V1=c(NO_OCC_RECORDS)))))
+```
 
 See information on
 [autokuenm](https://github.com/RhettRautsaw/VenomMaps/tree/master/code/autokuenm).
 
-Models were output from MaxEnt in logistic format; however, you can
-easily convert to the raw format using the functions provided in
-`convertSDMs.R`
+Models were output from MaxEnt in raw format; however, have been
+converted to cloglog format and further threshold using a 10th
+Percentile Training Presence.
 
-# Summarizing SDM Results
+# Summarizing ENM Results
 
-## Averaging Selected Final Models
+## Gathering Final Models & Statistics
 
-``` r
-summarizeModels<-function(path){
-  files<-list.files(Sys.glob(paste0(path,"/*")), pattern="*_avg.asc", full.names = T)
-  
-  rasters<-stack(files)
-  crs(rasters)<-"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
-  
-  rasters_mean<-mean(rasters, na.rm=T)
-  
-  new_raster_name<-paste0(path,"/",gsub(".asc", ".tif",gsub(".*\\/","", files[1])))
-  
-  writeRaster(rasters_mean, new_raster_name, format="GTiff")
-
-}
-
-
-species<-list.dirs(recursive=F, full.names=F)[-143]
-
-for(i in species){
-  print(i)
-  summarizeModels(paste0(i,"/Final_Models"))
-  summarizeModels(paste0(i,"/Final_Models_bioclim"))
-  summarizeModels(paste0(i,"/Final_Models_topvars"))
-}
+``` bash
+mkdir Final_Results
+cd Final_Results
+mkdir all bioclim topvars
+cd ..
+for i in `cat list.success`
+do echo $i
+cp $i/Final_Models/FinalModelResults.csv Final_Results/all/${i}_results.csv
+cp $i/Final_Models/FinalModelResults_best.csv Final_Results/all/${i}_results_best.csv
+cp $i/Final_Models/FinalModelResults_mean.csv Final_Results/all/${i}_results_mean.csv
+cp $i/Final_Models/*.tif Final_Results/all/
+cp $i/Final_Models_bioclim/FinalModelResults.csv Final_Results/bioclim/${i}_results.csv
+cp $i/Final_Models_bioclim/FinalModelResults_best.csv Final_Results/bioclim/${i}_results_best.csv
+cp $i/Final_Models_bioclim/FinalModelResults_mean.csv Final_Results/bioclim/${i}_results_mean.csv
+cp $i/Final_Models_bioclim/*.tif Final_Results/bioclim/
+cp $i/Final_Models_topvars/FinalModelResults.csv Final_Results/topvars/${i}_results.csv
+cp $i/Final_Models_topvars/FinalModelResults_best.csv Final_Results/topvars/${i}_results_best.csv
+cp $i/Final_Models_topvars/FinalModelResults_mean.csv Final_Results/topvars/${i}_results_mean.csv
+cp $i/Final_Models_topvars/*.tif Final_Results/topvars/
+done
 ```
 
-## Gathering Final Model Statistics
-
 ``` r
-# Gathering all Maxent Results
-files<-list.files(Sys.glob(paste0("*/Final_Models*/*")), pattern="maxentResults.csv", full.names = T)
-results<-read.csv(files[1])
-results<-results[nrow(results),]
-results$file<-files[1]
-for(i in 2:length(files)){
-  tmp<-read.csv(files[i])
-  tmp<-tmp[nrow(tmp),]
-  tmp$file<-files[i]
-  results<-merge(results, tmp, all=T)
-}
-write.csv(results, "Final_Results/allModelResults.csv")
-
-
-# Gathering Final Model Evaluations
-files<-list.files(Sys.glob(paste0("*/Final_Models*evaluation")), pattern="fm_evaluation_results.csv", full.names = T)
+files<-list.files(Sys.glob("Final_Results/*"), pattern="*results.csv", full.names = T)
 results<-read.csv(files[1])
 results$file<-files[1]
 for(i in 2:length(files)){
@@ -710,158 +739,299 @@ for(i in 2:length(files)){
   tmp$file<-files[i]
   results<-merge(results, tmp, all=T)
 }
-write.csv(results, "Final_Results/fm_evaulation_results.csv")
+write.csv(results, "Final_Results/combined_results.csv", quote=F)
 
-
-# Gathering Calibration AIC results
-files<-list.files(Sys.glob(paste0("*/Calibration_results*")), pattern="best_candidate_models_OR_AICc.csv", full.names = T)
-results<-read.csv(files[1])
-results$file<-files[1]
-for(i in 2:length(files)){
-  tmp<-read.csv(files[i])
-  tmp$file<-files[i]
+files_best<-list.files(Sys.glob("Final_Results/*"), pattern="*results_best.csv", full.names = T)
+results<-read.csv(files_best[1])
+results$file<-files_best[1]
+for(i in 2:length(files_best)){
+  tmp<-read.csv(files_best[i])
+  tmp$file<-files_best[i]
   results<-merge(results, tmp, all=T)
 }
-write.csv(results, "Final_Results/best_candidate_models_OR_AICc.csv", row.names = F)
+write.csv(results, "Final_Results/combined_results_best.csv", quote=F)
+
+files_mean<-list.files(Sys.glob("Final_Results/*"), pattern="*results_mean.csv", full.names = T)
+results<-read.csv(files_mean[1])
+results$file<-files_mean[1]
+for(i in 2:length(files_mean)){
+  tmp<-read.csv(files_mean[i])
+  tmp$file<-files_mean[i]
+  results<-merge(results, tmp, all=T)
+}
+write.csv(results, "Final_Results/combined_results_mean.csv", quote=F)
 ```
 
-## Combine Dataframes
+## Analyzing Results
 
 ``` r
-## Manually separated "files" and "Model_Name" columns into "Species", "testSet", "regMult", "featureTypes", "envSet"
+data<-read_xlsx("2022-02_Final_Results/combined_results.xlsx", sheet=2)
 
-tmp1<-read.csv("Final/sdms/allModelResults2.csv")
-tmp2<-read.csv("Final/sdms/best_candidate_models_OR_AICc2.csv")
-colnames(tmp2)[-(1:6)]<- paste("Candidate", colnames(tmp2)[-(1:6)], sep="_")
-tmp3<-read.csv("Final/sdms/fm_evaulation_results2.csv")
-colnames(tmp3)[-(1:6)]<- paste("Final", colnames(tmp3)[-(1:6)], sep="_")
-
-tmp4<-merge(tmp1,tmp2)
-data<-merge(tmp4,tmp3)
-rm(tmp1,tmp2, tmp3, tmp4)
-
-colList<-c("Species","testSet","Model_Name","regMult","featureTypes","envSet",
-           "Candidate_Mean_AUC_ratio","Candidate_pval_pROC","Candidate_Omission_rate_at_5.","Candidate_AICc","Candidate_delta_AICc","Candidate_W_AICc","Candidate_num_parameters",
-           "Final_Mean_AUC_ratio","Final_Partial_ROC","Final_Omission_rate_at_5.",
-           "X.Training.samples","Regularized.training.gain","Unregularized.training.gain","Iterations","Training.AUC","X.Background.points","Entropy",
-           "consensus_full_class_01.permutation.importance","consensus_full_class_02.permutation.importance","consensus_full_class_03.permutation.importance","consensus_full_class_04.permutation.importance","consensus_full_class_05.permutation.importance","consensus_full_class_06.permutation.importance","consensus_full_class_07.permutation.importance","consensus_full_class_08.permutation.importance","consensus_full_class_11.permutation.importance","consensus_full_class_12.permutation.importance",
-           "topo_aspectcosine_1KMmd_GMTEDmd.permutation.importance","topo_aspectsine_1KMmd_GMTEDmd.permutation.importance","topo_dx_1KMmd_GMTEDmd.permutation.importance","topo_dxx_1KMmd_GMTEDmd.permutation.importance","topo_dy_1KMmd_GMTEDmd.permutation.importance","topo_dyy_1KMmd_GMTEDmd.permutation.importance","topo_eastness_1KMmd_GMTEDmd.permutation.importance","topo_elevation_1KMmd_GMTEDmd.permutation.importance","topo_northness_1KMmd_GMTEDmd.permutation.importance","topo_pcurv_1KMmd_GMTEDmd.permutation.importance","topo_roughness_1KMmd_GMTEDmd.permutation.importance","topo_slope_1KMmd_GMTEDmd.permutation.importance","topo_tcurv_1KMmd_GMTEDmd.permutation.importance","topo_tpi_1KMmd_GMTEDmd.permutation.importance","topo_tri_1KMmd_GMTEDmd.permutation.importance","topo_vrm_1KMmd_GMTEDmd.permutation.importance",
-           "wc2.0_bio_30s_01.permutation.importance","wc2.0_bio_30s_02.permutation.importance","wc2.0_bio_30s_03.permutation.importance","wc2.0_bio_30s_04.permutation.importance","wc2.0_bio_30s_05.permutation.importance","wc2.0_bio_30s_06.permutation.importance","wc2.0_bio_30s_07.permutation.importance","wc2.0_bio_30s_08.permutation.importance","wc2.0_bio_30s_09.permutation.importance","wc2.0_bio_30s_10.permutation.importance","wc2.0_bio_30s_11.permutation.importance","wc2.0_bio_30s_12.permutation.importance","wc2.0_bio_30s_13.permutation.importance","wc2.0_bio_30s_14.permutation.importance","wc2.0_bio_30s_15.permutation.importance","wc2.0_bio_30s_16.permutation.importance","wc2.0_bio_30s_17.permutation.importance","wc2.0_bio_30s_18.permutation.importance","wc2.0_bio_30s_19.permutation.importance",
-           "consensus_full_class_01.contribution","consensus_full_class_02.contribution","consensus_full_class_03.contribution","consensus_full_class_04.contribution","consensus_full_class_05.contribution","consensus_full_class_06.contribution","consensus_full_class_07.contribution","consensus_full_class_08.contribution","consensus_full_class_11.contribution","consensus_full_class_12.contribution",
-           "topo_aspectcosine_1KMmd_GMTEDmd.contribution","topo_aspectsine_1KMmd_GMTEDmd.contribution","topo_dx_1KMmd_GMTEDmd.contribution","topo_dxx_1KMmd_GMTEDmd.contribution","topo_dy_1KMmd_GMTEDmd.contribution","topo_dyy_1KMmd_GMTEDmd.contribution","topo_eastness_1KMmd_GMTEDmd.contribution","topo_elevation_1KMmd_GMTEDmd.contribution","topo_northness_1KMmd_GMTEDmd.contribution","topo_pcurv_1KMmd_GMTEDmd.contribution","topo_roughness_1KMmd_GMTEDmd.contribution","topo_slope_1KMmd_GMTEDmd.contribution","topo_tcurv_1KMmd_GMTEDmd.contribution","topo_tpi_1KMmd_GMTEDmd.contribution","topo_tri_1KMmd_GMTEDmd.contribution","topo_vrm_1KMmd_GMTEDmd.contribution",
-           "wc2.0_bio_30s_01.contribution","wc2.0_bio_30s_02.contribution","wc2.0_bio_30s_03.contribution","wc2.0_bio_30s_04.contribution","wc2.0_bio_30s_05.contribution","wc2.0_bio_30s_06.contribution","wc2.0_bio_30s_07.contribution","wc2.0_bio_30s_08.contribution","wc2.0_bio_30s_09.contribution","wc2.0_bio_30s_10.contribution","wc2.0_bio_30s_11.contribution","wc2.0_bio_30s_12.contribution","wc2.0_bio_30s_13.contribution","wc2.0_bio_30s_14.contribution","wc2.0_bio_30s_15.contribution","wc2.0_bio_30s_16.contribution","wc2.0_bio_30s_17.contribution","wc2.0_bio_30s_18.contribution","wc2.0_bio_30s_19.contribution",
-           "Training.gain.with.only.consensus_full_class_01","Training.gain.with.only.consensus_full_class_02","Training.gain.with.only.consensus_full_class_03","Training.gain.with.only.consensus_full_class_04","Training.gain.with.only.consensus_full_class_05","Training.gain.with.only.consensus_full_class_06","Training.gain.with.only.consensus_full_class_07","Training.gain.with.only.consensus_full_class_08","Training.gain.with.only.consensus_full_class_11","Training.gain.with.only.consensus_full_class_12",
-           "Training.gain.with.only.topo_aspectcosine_1KMmd_GMTEDmd","Training.gain.with.only.topo_aspectsine_1KMmd_GMTEDmd","Training.gain.with.only.topo_dx_1KMmd_GMTEDmd","Training.gain.with.only.topo_dxx_1KMmd_GMTEDmd","Training.gain.with.only.topo_dy_1KMmd_GMTEDmd","Training.gain.with.only.topo_dyy_1KMmd_GMTEDmd","Training.gain.with.only.topo_eastness_1KMmd_GMTEDmd","Training.gain.with.only.topo_elevation_1KMmd_GMTEDmd","Training.gain.with.only.topo_northness_1KMmd_GMTEDmd","Training.gain.with.only.topo_pcurv_1KMmd_GMTEDmd","Training.gain.with.only.topo_roughness_1KMmd_GMTEDmd","Training.gain.with.only.topo_slope_1KMmd_GMTEDmd","Training.gain.with.only.topo_tcurv_1KMmd_GMTEDmd","Training.gain.with.only.topo_tpi_1KMmd_GMTEDmd","Training.gain.with.only.topo_tri_1KMmd_GMTEDmd","Training.gain.with.only.topo_vrm_1KMmd_GMTEDmd",
-           "Training.gain.with.only.wc2.0_bio_30s_01","Training.gain.with.only.wc2.0_bio_30s_02","Training.gain.with.only.wc2.0_bio_30s_03","Training.gain.with.only.wc2.0_bio_30s_04","Training.gain.with.only.wc2.0_bio_30s_05","Training.gain.with.only.wc2.0_bio_30s_06","Training.gain.with.only.wc2.0_bio_30s_07","Training.gain.with.only.wc2.0_bio_30s_08","Training.gain.with.only.wc2.0_bio_30s_09","Training.gain.with.only.wc2.0_bio_30s_10","Training.gain.with.only.wc2.0_bio_30s_11","Training.gain.with.only.wc2.0_bio_30s_12","Training.gain.with.only.wc2.0_bio_30s_13","Training.gain.with.only.wc2.0_bio_30s_14","Training.gain.with.only.wc2.0_bio_30s_15","Training.gain.with.only.wc2.0_bio_30s_16","Training.gain.with.only.wc2.0_bio_30s_17","Training.gain.with.only.wc2.0_bio_30s_18","Training.gain.with.only.wc2.0_bio_30s_19",
-           "Training.gain.without.consensus_full_class_01","Training.gain.without.consensus_full_class_02","Training.gain.without.consensus_full_class_03","Training.gain.without.consensus_full_class_04","Training.gain.without.consensus_full_class_05","Training.gain.without.consensus_full_class_06","Training.gain.without.consensus_full_class_07","Training.gain.without.consensus_full_class_08","Training.gain.without.consensus_full_class_11","Training.gain.without.consensus_full_class_12",
-           "Training.gain.without.topo_aspectcosine_1KMmd_GMTEDmd","Training.gain.without.topo_aspectsine_1KMmd_GMTEDmd","Training.gain.without.topo_dx_1KMmd_GMTEDmd","Training.gain.without.topo_dxx_1KMmd_GMTEDmd","Training.gain.without.topo_dy_1KMmd_GMTEDmd","Training.gain.without.topo_dyy_1KMmd_GMTEDmd","Training.gain.without.topo_eastness_1KMmd_GMTEDmd","Training.gain.without.topo_elevation_1KMmd_GMTEDmd","Training.gain.without.topo_northness_1KMmd_GMTEDmd","Training.gain.without.topo_pcurv_1KMmd_GMTEDmd","Training.gain.without.topo_roughness_1KMmd_GMTEDmd","Training.gain.without.topo_slope_1KMmd_GMTEDmd","Training.gain.without.topo_tcurv_1KMmd_GMTEDmd","Training.gain.without.topo_tpi_1KMmd_GMTEDmd","Training.gain.without.topo_tri_1KMmd_GMTEDmd","Training.gain.without.topo_vrm_1KMmd_GMTEDmd",
-           "Training.gain.without.wc2.0_bio_30s_01","Training.gain.without.wc2.0_bio_30s_02","Training.gain.without.wc2.0_bio_30s_03","Training.gain.without.wc2.0_bio_30s_04","Training.gain.without.wc2.0_bio_30s_05","Training.gain.without.wc2.0_bio_30s_06","Training.gain.without.wc2.0_bio_30s_07","Training.gain.without.wc2.0_bio_30s_08","Training.gain.without.wc2.0_bio_30s_09","Training.gain.without.wc2.0_bio_30s_10","Training.gain.without.wc2.0_bio_30s_11","Training.gain.without.wc2.0_bio_30s_12","Training.gain.without.wc2.0_bio_30s_13","Training.gain.without.wc2.0_bio_30s_14","Training.gain.without.wc2.0_bio_30s_15","Training.gain.without.wc2.0_bio_30s_16","Training.gain.without.wc2.0_bio_30s_17","Training.gain.without.wc2.0_bio_30s_18","Training.gain.without.wc2.0_bio_30s_19",
-           "Prevalence..average.probability.of.presence.over.background.sites.",
-           "Fixed.cumulative.value.1.cumulative.threshold","Fixed.cumulative.value.1.Logistic.threshold","Fixed.cumulative.value.1.area","Fixed.cumulative.value.1.training.omission","Fixed.cumulative.value.5.cumulative.threshold","Fixed.cumulative.value.5.Logistic.threshold","Fixed.cumulative.value.5.area","Fixed.cumulative.value.5.training.omission","Fixed.cumulative.value.10.cumulative.threshold","Fixed.cumulative.value.10.Logistic.threshold","Fixed.cumulative.value.10.area","Fixed.cumulative.value.10.training.omission",
-           "Minimum.training.presence.cumulative.threshold","Minimum.training.presence.Logistic.threshold","Minimum.training.presence.area","Minimum.training.presence.training.omission",
-           "X10.percentile.training.presence.cumulative.threshold","X10.percentile.training.presence.Logistic.threshold","X10.percentile.training.presence.area","X10.percentile.training.presence.training.omission",
-           "Equal.training.sensitivity.and.specificity.cumulative.threshold","Equal.training.sensitivity.and.specificity.Logistic.threshold","Equal.training.sensitivity.and.specificity.area","Equal.training.sensitivity.and.specificity.training.omission",
-           "Maximum.training.sensitivity.plus.specificity.cumulative.threshold","Maximum.training.sensitivity.plus.specificity.Logistic.threshold","Maximum.training.sensitivity.plus.specificity.area","Maximum.training.sensitivity.plus.specificity.training.omission",
-           "Balance.training.omission..predicted.area.and.threshold.value.cumulative.threshold","Balance.training.omission..predicted.area.and.threshold.value.Logistic.threshold","Balance.training.omission..predicted.area.and.threshold.value.area","Balance.training.omission..predicted.area.and.threshold.value.training.omission",
-           "Equate.entropy.of.thresholded.and.original.distributions.cumulative.threshold","Equate.entropy.of.thresholded.and.original.distributions.Logistic.threshold","Equate.entropy.of.thresholded.and.original.distributions.area","Equate.entropy.of.thresholded.and.original.distributions.training.omission")
-
-
-data<-data[,colList]
-
-write.csv(data, "Final/sdms/tmp_supplemental_table_1.1.csv", row.names = F)
+# Find best compSet (i.e. THE FINAL MODELS)
+data2=data %>% group_by(Species) %>% filter(Omission_rate_at_5. == min(Omission_rate_at_5.)) %>% filter(Mean_AUC_ratio==max(Mean_AUC_ratio))
+# added this information to the avg_models sheet of the results xlsx
 ```
 
-## Summary Statistics
+## Calibration Models
 
 ``` r
-# ANALYZING/PLOTTING RESULTS
-#data<-read_xlsx("allModelResults.xlsx", col_types = c(rep("text",7), rep("numeric", 234)))
-# Mean of multiple models
-data_mean<-data %>% group_by(Species, testSet) %>% summarize_if(is.numeric, mean, na.rm=T)
+data<-read_xlsx("2022-02_Final_Results/combined_results.xlsx", sheet=2)
 
-# Filtering datasets
-data_all<-data %>% filter(testSet=="all") 
-data_bioclim<-data %>% filter(testSet=="bioclim") 
-data_combo<-data %>% filter(testSet=="topvars")
-data_mean_all<-data_mean %>% filter(testSet=="all") 
-data_mean_bioclim<-data_mean %>% filter(testSet=="bioclim") 
-data_mean_combo<-data_mean %>% filter(testSet=="topvars") 
-
-# Determining which Environmental Set was the best
-## Count Number of Times each Environmental Set was Selected
-data_all %>% group_by(Species) %>% count(envSet) %>% count(envSet) %>% summarize(envSet=paste(envSet, collapse="; ")) %>% ungroup() %>% count(envSet)
-
-## Count Mean Number of Models Selected per Environmental Set
-data_all %>% group_by(Species) %>% count(envSet) %>% ungroup() %>% group_by(envSet) %>% summarize(mean=mean(n))
-
-## Count Number of Samples per Selected Environmental Set
-data_all %>% dplyr::select(Species, envSet, X.Training.samples) %>% distinct() %>% group_by(envSet) %>% summarize(mean=mean(X.Training.samples))
-
-# AUC Statistics
-## All Models
-summary(data_mean_all$Training.AUC)
-data_all %>% group_by(envSet) %>% summarize(median=median(Training.AUC))
-
-## Bioclim AUC statistics
-summary(data_mean_bioclim$Training.AUC)
-
-## Combo AUC statistics
-summary(data_mean_combo$Training.AUC)
-```
-
-## Plotting AUC and Variable Contributions
-
-``` r
-## Summarize AUC
-A <- ggviolin(data_all, x="envSet", y="Training.AUC", fill="envSet", palette="npg", trim = T, add="boxplot", 
-              ylab="AUC", xlab="Environmental Data Sets", ylim=c(0.5, 1), order = c("topvars","bioc","topo","land")) + scale_x_discrete(labels=c('Combo', 'Bioclim', 'Topography', 'Landcover')) +
+# Calculate summary stats for different env sets when comparing all possible models
+data_all<-data %>% filter(compSet=="all")
+## AUC
+summary.stats<-data_all %>% group_by(envSet) %>% get_summary_stats(Training.AUC)
+summary.stats$envSet <- factor(summary.stats$envSet, c("topvars","bioclim","topo"))
+A1<-ggviolin(data_all, x="envSet", y="Training.AUC", add="boxplot", 
+             order = c("topvars","bioclim","topo"),fill="envSet", palette="npg", 
+             ylab="AUC", xlab="Environmental Data Sets") +
+  scale_x_discrete(labels=c('Combination', 'Bioclim', 'Topography')) +
   theme_pubclean() + rremove("legend")
+A2<-ggsummarytable(summary.stats, x="envSet", 
+                   y=c("n","mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
 
-B <- ggviolin(data_mean, x="testSet", y="Training.AUC", fill="testSet", palette=c("gray", get_palette("npg", 2)), trim = T, add="boxplot",
-              ylab="AUC", xlab="Comparative Data Sets", ylim=c(0.5, 1), order=c("all", "topvars", "bioclim")) + scale_x_discrete(labels=c('All', 'Combo-only', 'Bioclim-only')) +
+## AUC Ratio
+summary.stats<-data_all %>% group_by(envSet) %>% get_summary_stats(Mean_AUC_ratio)
+summary.stats$envSet <- factor(summary.stats$envSet, c("topvars","bioclim","topo"))
+B1<-ggviolin(data_all, x="envSet", y="Mean_AUC_ratio", add="boxplot", 
+             order = c("topvars","bioclim","topo"),fill="envSet", palette="npg", 
+             ylab="AUC Ratio", xlab="Environmental Data Sets") +
+  scale_x_discrete(labels=c('Combination', 'Bioclim', 'Topography')) +
   theme_pubclean() + rremove("legend")
-  #annotate("text", x=1, y=1.01,  label=paste0(round(range(data_mean[data2$testSet=="all",]$Training.AUC), 3), collapse ="-")) + 
-  #annotate("text", x=2, y=1.01,  label=paste0(round(range(data2[data2$testSet=="bioclim",]$Training.AUC), 3), collapse ="—")) + 
-  #annotate("text", x=3, y=1.01,  label=paste0(round(range(data2[data2$testSet=="topvars",]$Training.AUC), 3), collapse ="—"))
+B2<-ggsummarytable(summary.stats, x="envSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
 
-# Environmental Contributions
-# envContrib<-colMeans(data_mean_combo[,59:103], na.rm = T)
-# names(envContrib)<-gsub(".contribution", "",colnames(data_mean_combo[,59:103]))
-# envContrib<-as.data.frame(envContrib)
-# colnames(envContrib)[1]<-"Model Contribution"
-# 
-# envPermu<-colMeans(data_mean_combo[,14:58], na.rm = T)
-# names(envPermu)<-gsub(".permutation.importance", "", colnames(data_mean_combo[,14:58]))
-# envPermu<-as.data.frame(envPermu)
-# colnames(envPermu)[1]<-"Permutation Importance"
+## Omission Rate
+summary.stats<-data_all %>% group_by(envSet) %>% get_summary_stats(Omission_rate_at_5.)
+summary.stats$envSet <- factor(summary.stats$envSet, c("topvars","bioclim","topo"))
+C1<-ggviolin(data_all, x="envSet", y="Omission_rate_at_5.", add="boxplot", 
+             order = c("topvars","bioclim","topo"),fill="envSet", palette="npg", 
+             ylab="Omission Rate at 5%", xlab="Environmental Data Sets") +
+  scale_x_discrete(labels=c('Combination', 'Bioclim', 'Topography')) +
+  theme_pubclean() + rremove("legend")
+C2<-ggsummarytable(summary.stats, x="envSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
 
-tmp<-as.matrix(data_mean_combo[,66:110])
-tmp[is.nan(tmp)] <- 0
+## Number of Training Records
+summary.stats<-data_all %>% group_by(envSet) %>% get_summary_stats(X.Training.samples)
+summary.stats$envSet <- factor(summary.stats$envSet, c("topvars","bioclim","topo"))
+D1<-ggviolin(data_all, x="envSet", y="X.Training.samples", add="boxplot", 
+             order = c("topvars","bioclim","topo"),fill="envSet", palette="npg", 
+             ylab="Number of Training Records", xlab="Environmental Data Sets") +
+  scale_x_discrete(labels=c('Combination', 'Bioclim', 'Topography')) +
+  yscale("log2") + theme_pubclean() + rremove("legend")
+D2<-ggsummarytable(summary.stats, x="envSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
+
+svg("2022-02_Final_Results/ceval_envSet.svg", width=15, height=6)
+((A1+B1+C1+D1)+ plot_layout(ncol=4))/((A2+B2+C2+D2) + plot_layout(ncol=4)) + plot_layout(heights = c(5,1))
+dev.off()
+
+
+# Calculate summary stats for different comparative sets
+## AUC
+summary.stats<-data %>% group_by(compSet) %>% get_summary_stats(Training.AUC)
+summary.stats$compSet <- factor(summary.stats$compSet, c("all","bioclim","topvars"))
+A1<-ggviolin(data, x="compSet", y="Training.AUC", add="boxplot", 
+             order = c("all","bioclim","topvars"),fill="compSet", palette="npg", 
+             ylab="AUC", xlab="Comparative Sets") +
+  scale_x_discrete(labels=c('All', 'Combination Models\nOnly', 'Bioclim Models\nOnly')) +
+  theme_pubclean() + rremove("legend")
+A2<-ggsummarytable(summary.stats, x="compSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
+
+## AUC Ratio
+summary.stats<-data %>% group_by(compSet) %>% get_summary_stats(Mean_AUC_ratio)
+summary.stats$compSet <- factor(summary.stats$compSet, c("all","bioclim","topvars"))
+B1<-ggviolin(data, x="compSet", y="Mean_AUC_ratio", add="boxplot", 
+             order = c("all","bioclim","topvars"),fill="compSet", palette="npg", 
+             ylab="AUC Ratio", xlab="Comparative Sets") +
+  scale_x_discrete(labels=c('All', 'Combination Models\nOnly', 'Bioclim Models\nOnly')) +
+  theme_pubclean() + rremove("legend")
+B2<-ggsummarytable(summary.stats, x="compSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
+
+## Omission Rate
+summary.stats<-data %>% group_by(compSet) %>% get_summary_stats(Omission_rate_at_5.)
+summary.stats$compSet <- factor(summary.stats$compSet, c("all","bioclim","topvars"))
+C1<-ggviolin(data, x="compSet", y="Omission_rate_at_5.", add="boxplot", 
+             order = c("all","bioclim","topvars"),fill="compSet", palette="npg", 
+             ylab="Omission Rate at 5%", xlab="Comparative Sets") +
+  scale_x_discrete(labels=c('All', 'Combination Models\nOnly', 'Bioclim Models\nOnly')) +
+  theme_pubclean() + rremove("legend")
+C2<-ggsummarytable(summary.stats, x="compSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
+
+## Number of Training Records
+summary.stats<-data %>% group_by(compSet) %>% get_summary_stats(X.Training.samples)
+summary.stats$compSet <- factor(summary.stats$compSet, c("all","bioclim","topvars"))
+D1<-ggviolin(data, x="compSet", y="X.Training.samples", add="boxplot", 
+             order = c("all","bioclim","topvars"),fill="compSet", palette="npg", 
+             ylab="Number of Training Records", xlab="Comparative Sets") +
+  scale_x_discrete(labels=c('All', 'Combination Models\nOnly', 'Bioclim Models\nOnly')) +
+  yscale("log2") + theme_pubclean() + rremove("legend")
+D2<-ggsummarytable(summary.stats, x="compSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
+
+svg("2022-02_Final_Results/ceval_compSet.svg", width=15, height=6)
+((A1+B1+C1+D1)+ plot_layout(ncol=4))/((A2+B2+C2+D2) + plot_layout(ncol=4)) + plot_layout(heights = c(5,1))
+dev.off()
+```
+
+## Final Models
+
+``` r
+data<-read_xlsx("2022-02_Final_Results/combined_results.xlsx", sheet=3)
+
+# Calculate summary stats for different env sets when comparing all possible models
+data_final<-data %>% filter(finalModel=="TRUE")
+## AUC
+summary.stats<-data_final %>% group_by(envSet) %>% get_summary_stats(Training.AUC)
+summary.stats$envSet <- factor(summary.stats$envSet, c("topvars","bioclim","topo"))
+A1<-ggviolin(data_final, x="envSet", y="Training.AUC", add="boxplot", 
+             order = c("topvars","bioclim","topo"),fill="envSet", palette="npg", 
+             ylab="AUC", xlab="Environmental Data Sets") +
+  scale_x_discrete(labels=c('Combination', 'Bioclim', 'Topography')) +
+  theme_pubclean() + rremove("legend")
+A2<-ggsummarytable(summary.stats, x="envSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
+
+## AUC Ratio
+summary.stats<-data_final %>% group_by(envSet) %>% get_summary_stats(Mean_AUC_ratio)
+summary.stats$envSet <- factor(summary.stats$envSet, c("topvars","bioclim","topo"))
+B1<-ggviolin(data_final, x="envSet", y="Mean_AUC_ratio", add="boxplot", 
+             order = c("topvars","bioclim","topo"),fill="envSet", palette="npg", 
+             ylab="AUC Ratio", xlab="Environmental Data Sets") +
+  scale_x_discrete(labels=c('Combination', 'Bioclim', 'Topography')) +
+  theme_pubclean() + rremove("legend")
+B2<-ggsummarytable(summary.stats, x="envSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
+
+## Omission Rate
+summary.stats<-data_final %>% group_by(envSet) %>% get_summary_stats(Omission_rate_at_5.)
+summary.stats$envSet <- factor(summary.stats$envSet, c("topvars","bioclim","topo"))
+C1<-ggviolin(data_final, x="envSet", y="Omission_rate_at_5.", add="boxplot", 
+             order = c("topvars","bioclim","topo"),fill="envSet", palette="npg", 
+             ylab="Omission Rate at 5%", xlab="Environmental Data Sets") +
+  scale_x_discrete(labels=c('Combination', 'Bioclim', 'Topography')) +
+  theme_pubclean() + rremove("legend")
+C2<-ggsummarytable(summary.stats, x="envSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
+
+## Number of Training Records
+summary.stats<-data_final %>% group_by(envSet) %>% get_summary_stats(X.Training.samples)
+summary.stats$envSet <- factor(summary.stats$envSet, c("topvars","bioclim","topo"))
+D1<-ggviolin(data_final, x="envSet", y="X.Training.samples", add="boxplot", 
+             order = c("topvars","bioclim","topo"),fill="envSet", palette="npg", 
+             ylab="Number of Training Records", xlab="Environmental Data Sets") +
+  scale_x_discrete(labels=c('Combination', 'Bioclim', 'Topography')) +
+  yscale("log2") + theme_pubclean() + rremove("legend")
+D2<-ggsummarytable(summary.stats, x="envSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
+
+svg("2022-02_Final_Results/feval_envSet.svg", width=15, height=6)
+((A1+B1+C1+D1)+ plot_layout(ncol=4))/((A2+B2+C2+D2) + plot_layout(ncol=4)) + plot_layout(heights = c(5,1))
+dev.off()
+
+
+# Calculate summary stats for different comparative sets
+## AUC
+summary.stats<-data %>% group_by(compSet) %>% get_summary_stats(Training.AUC)
+summary.stats$compSet <- factor(summary.stats$compSet, c("all","bioclim","topvars"))
+A1<-ggviolin(data, x="compSet", y="Training.AUC", add="boxplot", 
+             order = c("all","bioclim","topvars"),fill="compSet", palette="npg", 
+             ylab="AUC", xlab="Comparative Sets") +
+  scale_x_discrete(labels=c('All', 'Combination Models\nOnly', 'Bioclim Models\nOnly')) +
+  theme_pubclean() + rremove("legend")
+A2<-ggsummarytable(summary.stats, x="compSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
+
+## AUC Ratio
+summary.stats<-data %>% group_by(compSet) %>% get_summary_stats(Mean_AUC_ratio)
+summary.stats$compSet <- factor(summary.stats$compSet, c("all","bioclim","topvars"))
+B1<-ggviolin(data, x="compSet", y="Mean_AUC_ratio", add="boxplot", 
+             order = c("all","bioclim","topvars"),fill="compSet", palette="npg", 
+             ylab="AUC Ratio", xlab="Comparative Sets") +
+  scale_x_discrete(labels=c('All', 'Combination Models\nOnly', 'Bioclim Models\nOnly')) +
+  theme_pubclean() + rremove("legend")
+B2<-ggsummarytable(summary.stats, x="compSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
+
+## Omission Rate
+summary.stats<-data %>% group_by(compSet) %>% get_summary_stats(Omission_rate_at_5.)
+summary.stats$compSet <- factor(summary.stats$compSet, c("all","bioclim","topvars"))
+C1<-ggviolin(data, x="compSet", y="Omission_rate_at_5.", add="boxplot", 
+             order = c("all","bioclim","topvars"),fill="compSet", palette="npg", 
+             ylab="Omission Rate at 5%", xlab="Comparative Sets") +
+  scale_x_discrete(labels=c('All', 'Combination Models\nOnly', 'Bioclim Models\nOnly')) +
+  theme_pubclean() + rremove("legend")
+C2<-ggsummarytable(summary.stats, x="compSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
+
+## Number of Training Records
+summary.stats<-data %>% group_by(compSet) %>% get_summary_stats(X.Training.samples)
+summary.stats$compSet <- factor(summary.stats$compSet, c("all","bioclim","topvars"))
+D1<-ggviolin(data, x="compSet", y="X.Training.samples", add="boxplot", 
+             order = c("all","bioclim","topvars"),fill="compSet", palette="npg", 
+             ylab="Number of Training Records", xlab="Comparative Sets") +
+  scale_x_discrete(labels=c('All', 'Combination Models\nOnly', 'Bioclim Models\nOnly')) +
+  yscale("log2") + theme_pubclean() + rremove("legend")
+D2<-ggsummarytable(summary.stats, x="compSet", 
+                   y=c("n", "mean","sd", "median","iqr"), digits = 2) + 
+  clean_table_theme()
+
+svg("2022-02_Final_Results/feval_compSet.svg", width=15, height=6)
+((A1+B1+C1+D1)+ plot_layout(ncol=4))/((A2+B2+C2+D2) + plot_layout(ncol=4)) + plot_layout(heights = c(5,1))
+dev.off()
+```
+
+## Variable Contributions
+
+``` r
+data<-read_xlsx("2022-02_Final_Results/combined_results.xlsx", sheet=3) %>% filter(compSet=="topvars")
+
+tmp<-as.matrix(data[,str_detect(colnames(data), "contribution")])
+tmp[is.na(tmp)] <- 0
 tmp<-as.data.frame(tmp)
-envContrib<-colMeans(tmp[,1:45], na.rm = T)
-names(envContrib)<-gsub(".contribution", "",colnames(data_mean_combo[,59:103]))
+envContrib<-colMeans(tmp, na.rm = T)
+names(envContrib)<-gsub(".contribution", "",names(envContrib))
 envContrib<-as.data.frame(envContrib)
 colnames(envContrib)[1]<-"Model Contribution"
 
-tmp<-as.matrix(data_mean_combo[,21:65])
-tmp[is.nan(tmp)] <- 0
+tmp<-as.matrix(data[,str_detect(colnames(data), "permutation")])
+tmp[is.na(tmp)] <- 0
 tmp<-as.data.frame(tmp)
-envPermu<-colMeans(tmp[,1:45], na.rm = T)
-names(envPermu)<-gsub(".permutation.importance", "", colnames(data_mean_combo[,14:58]))
+envPermu<-colMeans(tmp, na.rm = T)
+names(envPermu)<-gsub(".permutation.importance", "", names(envPermu))
 envPermu<-as.data.frame(envPermu)
 colnames(envPermu)[1]<-"Permutation Importance"
 
-envContrib2<-cbind(envContrib, envPermu)
+envContrib2<-merge(envContrib, envPermu, by=0) %>% column_to_rownames("Row.names")
 rownames(envContrib2) <- gsub("wc2.0_bio_30s_","bioclim_",gsub("_1KMmd_GMTED", "", gsub("consensus_full_class", "landcover",rownames(envContrib2))))
 
 library(pheatmap)
 library(ggplotify)
+svg("2022-02_Final_Results/envContrib.svg", height=3, width=15)
 C<-as.ggplot(pheatmap(t(as.matrix(envContrib2)), cluster_rows = F, cluster_cols = F, angle_col=315))
-
-(A+B)/C + plot_layout(heights = c(2,1)) + plot_annotation(tag_levels = 'A')
+dev.off()
 ```
 
-## Plotting Example SDMs
+## Plotting Example Niche Models
 
 ``` r
 example_plots<-c("Agkistrodon_bilineatus", "Bothriechis_schlegelii", "Bothrops_jararaca", "Cerrophidion_godmani", "Crotalus_cerastes", "Lachesis_muta", "Metlapilcoatlus_nummifer", "Porthidium_nasutum", "Sistrurus_miliarius")
@@ -878,9 +1048,9 @@ rasCol=colorRampPalette(brewer.pal(9,"Greens"))(100)
 
 for(i in 1:length(example_plots)){
   tmp_shp<-st_read(paste0("~/Dropbox/GitHub/ShinyServer/Apps/VenomMaps/data/distributions/", example_plots[i],".geojson"), crs=4326)
-  tmp<-raster(paste0("Final/sdms/Final_Models_topvars/",example_plots[i],"_avg.tif"))
-  xlim_p=c(st_bbox(tmp)[1], st_bbox(tmp)[3])
-  ylim_p=c(st_bbox(tmp)[2], st_bbox(tmp)[4])
+  tmp<-raster(paste0("2022-02_Final_Results/final_models/",example_plots[i],"_avg_cloglog.tif"))
+  xlim_p=c(st_bbox(tmp_shp)[1]-1, st_bbox(tmp_shp)[3]+1)
+  ylim_p=c(st_bbox(tmp_shp)[2]-1, st_bbox(tmp_shp)[4]+1)
   A<-ggplot() + layer_spatial(tmp) + scale_fill_gradientn("P(Occurrence)", colours = rasCol, na.value=NA, limits=c(0,1)) + 
     new_scale_fill() + # rev(terrain.colors(255))
     geom_sf(countries, mapping=aes(), fill=NA, color="gray75") + 
@@ -903,7 +1073,54 @@ CCDDGG
 CCDDGG
 '
 
-svg("test.svg", width=11, height=8.5)
+svg("2022-02_Final_Results/example_enms.svg", width=11, height=8.5)
+wrap_plots(A=Crotalus_cerastes, B=Cerrophidion_godmani, C=Bothriechis_schlegelii, D=overview_map, E=Sistrurus_miliarius, F=Metlapilcoatlus_nummifer, G=Bothrops_jararaca, design = layout)
+dev.off()
+```
+
+## Plotting Example Theshold Models
+
+``` r
+example_plots<-c("Agkistrodon_bilineatus", "Bothriechis_schlegelii", "Bothrops_jararaca", "Cerrophidion_godmani", "Crotalus_cerastes", "Lachesis_muta", "Metlapilcoatlus_nummifer", "Porthidium_nasutum", "Sistrurus_miliarius")
+
+overview<-ne_countries(scale=110, continent = c("North America", "South America"), returnclass = "sf") %>% filter(admin!="Greenland")
+
+overview_map<-ggplot() + geom_sf(overview, mapping=aes(), fill="gray75", color="gray75") + 
+  theme_void()
+
+countries<-ne_countries(scale = 10, returnclass = "sf", continent = c("North America", "South America")) 
+world<-ne_coastline(scale=10, returnclass = "sf")
+
+rasCol=colorRampPalette(brewer.pal(9,"Greens"))(100)
+
+for(i in 1:length(example_plots)){
+  tmp_shp<-st_read(paste0("~/Dropbox/GitHub/ShinyServer/Apps/VenomMaps/data/distributions/", example_plots[i],".geojson"), crs=4326)
+  tmp<-raster(paste0("2022-02_Final_Results/final_models/",example_plots[i],"_avg_cloglog_p10b.tif"))
+  xlim_p=c(st_bbox(tmp_shp)[1]-1, st_bbox(tmp_shp)[3]+1)
+  ylim_p=c(st_bbox(tmp_shp)[2]-1, st_bbox(tmp_shp)[4]+1)
+  A<-ggplot() + layer_spatial(tmp) + scale_fill_gradientn("P(Occurrence)", colours = rasCol, na.value=NA, limits=c(0,1)) + 
+    new_scale_fill() + # rev(terrain.colors(255))
+    geom_sf(countries, mapping=aes(), fill=NA, color="gray75") + 
+    geom_sf(tmp_shp, mapping=aes(), fill=NA, color="black", ) + coord_sf(xlim=xlim_p, ylim=ylim_p, expand = FALSE) +
+    labs(title=example_plots[i]) + theme_void() + theme(panel.border = element_rect(colour = "black", fill=NA, size=5))
+    #annotation_north_arrow(location = "bl", which_north = "true", pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"), style = north_arrow_fancy_orienteering)
+  
+  #assign(paste0("Fig2.",i),A)
+  assign(paste0(example_plots[i]),A)
+}
+
+#(Fig2.1 + Fig2.2 + Fig2.3)/(Fig2.4 + Fig2.5 + Fig2.6)/(Fig2.7 + Fig2.8 + Fig2.9) + plot_layout(widths = c(1,1,1))
+
+layout <- '
+AADDEE
+AADDEE
+BBDDFF
+BBDDFF
+CCDDGG
+CCDDGG
+'
+
+svg("2022-02_Final_Results/example_enms_thresh.svg", width=11, height=8.5)
 wrap_plots(A=Crotalus_cerastes, B=Cerrophidion_godmani, C=Bothriechis_schlegelii, D=overview_map, E=Sistrurus_miliarius, F=Metlapilcoatlus_nummifer, G=Bothrops_jararaca, design = layout)
 dev.off()
 ```
@@ -911,126 +1128,147 @@ dev.off()
 ## Plotting Example Bioclim vs. Combo Model
 
 ``` r
-bioclim<-raster("Final/sdms/Final_Models_bioclim/Agkistrodon_piscivorus_avg.tif")
-combo<-raster("Final/sdms/Final_Models_topvars/Agkistrodon_piscivorus_avg.tif")
+bioclim<-raster("2022-02_Final_Results/bioclim/Agkistrodon_piscivorus_avg_cloglog.tif")
+combo<-raster("2022-02_Final_Results/topvars/Agkistrodon_piscivorus_avg_cloglog.tif")
+rivers<-ne_download(scale = 10, type = 'rivers_lake_centerlines', category = 'physical', returnclass = "sf")
+rivers<-st_crop(rivers,extent(bioclim))
 
 xlim_p=c(st_bbox(bioclim)[1], st_bbox(bioclim)[3])
 ylim_p=c(st_bbox(bioclim)[2], st_bbox(bioclim)[4])
 
 A<-ggplot() + layer_spatial(bioclim) + scale_fill_gradientn("P(Occurrence)", colours = colorRampPalette(brewer.pal(9,"Greens"))(100), na.value=NA, limits=c(0,1)) + new_scale_fill() +
-  geom_sf(countries, mapping=aes(), fill=NA, color="gray75") + coord_sf(xlim=xlim_p, ylim=ylim_p, expand=F) + 
-  labs(title="Agkistrodon piscivorus bioclim") + theme_void()
-B<-ggplot() + layer_spatial(combo) + scale_fill_gradientn("P(Occurrence)", colours = colorRampPalette(brewer.pal(9,"Greens"))(100), na.value=NA, limits=c(0,1)) + new_scale_fill() +
-  geom_sf(countries, mapping=aes(), fill=NA, color="gray75") + coord_sf(xlim=xlim_p, ylim=ylim_p, expand=F) + 
-  labs(title="Agkistrodon piscivorus combo") + theme_void()
+  geom_sf(countries, mapping=aes(), fill=NA, color="gray75") +
+  coord_sf(xlim=xlim_p, ylim=ylim_p, expand=F) + 
+  labs(title="Bioclim Model") + theme_void() + rremove("legend")
+B<-ggplot() + layer_spatial(bioclim) + scale_fill_gradientn("P(Occurrence)", colours = colorRampPalette(brewer.pal(9,"Greens"))(100), na.value=NA, limits=c(0,1)) + new_scale_fill() +
+  geom_sf(countries, mapping=aes(), fill=NA, color="gray75") + geom_sf(rivers, mapping=aes(), color="black") + 
+  coord_sf(xlim=xlim_p, ylim=ylim_p, expand=F)  + 
+  labs(title="Bioclim Model + Rivers") + theme_void() + rremove("legend")
+C<-ggplot() + layer_spatial(combo) + scale_fill_gradientn("P(Occurrence)", colours = colorRampPalette(brewer.pal(9,"Greens"))(100), na.value=NA, limits=c(0,1)) + new_scale_fill() +
+  geom_sf(countries, mapping=aes(), fill=NA, color="gray75") + 
+  coord_sf(xlim=xlim_p, ylim=ylim_p, expand=F) + 
+  labs(title="Combination Model") + theme_void() 
 
-svg("test2.svg", width=11, height=8.5)
-A+B+overview_map
+svg("2022-02_Final_Results/Apisc-envComp.svg", width=11, height=8.5)
+overview_map+A+B+C+plot_layout(ncol = 4)
 dev.off()
 ```
 
-## Summarizing Mean Combo Models (Supplemental Table 1)
+## Plotting Example Bioclim vs. Topo vs. Combo Models
+
+Using M. nummifer as an example.
 
 ``` r
-# Create Supplemental Summary Table
-data3.1<-data_combo %>% count(Species)
+topo<-raster("2022-02_Final_Results/all/Metlapilcoatlus_nummifer_avg_cloglog.tif")
+bioclim<-raster("2022-02_Final_Results/bioclim/Metlapilcoatlus_nummifer_avg_cloglog.tif")
+combo<-raster("2022-02_Final_Results/topvars/Metlapilcoatlus_nummifer_avg_cloglog.tif")
 
-data3.2<-data_combo %>% dplyr::select(c(1,4,5)) %>% distinct() %>% 
-  group_by(Species) %>% summarize_all(~paste(., collapse = ','))
+xlim_p=c(st_bbox(bioclim)[1]-1, st_bbox(bioclim)[3]+1)
+ylim_p=c(st_bbox(bioclim)[2]-1, st_bbox(bioclim)[4]+1)
 
-#data3<-data %>% group_by(Species, testSet) %>% select(Species, testSet, envSet) %>% distinct() %>% summarize_if(is.character, paste, collapse="; ")
+A<-ggplot() + layer_spatial(topo) + scale_fill_gradientn("P(Occurrence)", colours = colorRampPalette(brewer.pal(9,"Greens"))(100), na.value=NA, limits=c(0,1)) + new_scale_fill() +
+  geom_sf(countries, mapping=aes(), fill=NA, color="gray75") +
+  coord_sf(xlim=xlim_p, ylim=ylim_p, expand=F) + 
+  labs(title="Topographic Model") + theme_void() + rremove("legend")
+B<-ggplot() + layer_spatial(bioclim) + scale_fill_gradientn("P(Occurrence)", colours = colorRampPalette(brewer.pal(9,"Greens"))(100), na.value=NA, limits=c(0,1)) + new_scale_fill() +
+  geom_sf(countries, mapping=aes(), fill=NA, color="gray75") + 
+  coord_sf(xlim=xlim_p, ylim=ylim_p, expand=F)  + 
+  labs(title="Bioclim Model") + theme_void() + rremove("legend")
+C<-ggplot() + layer_spatial(combo) + scale_fill_gradientn("P(Occurrence)", colours = colorRampPalette(brewer.pal(9,"Greens"))(100), na.value=NA, limits=c(0,1)) + new_scale_fill() +
+  geom_sf(countries, mapping=aes(), fill=NA, color="gray75") + 
+  coord_sf(xlim=xlim_p, ylim=ylim_p, expand=F) + 
+  labs(title="Combination Model") + theme_void() 
 
-data4<-merge(data3.1, data3.2)
-data4<-merge(data4, data_mean_combo, by="Species")
-
-write.csv(data4, "Final/sdms/tmp_supplemental_table_1.2.csv", row.names = F)
+svg("2022-02_Final_Results/Mnumm-envComp.svg", width=11, height=8.5)
+overview_map+A+B+C+plot_layout(ncol = 4)
+dev.off()
 ```
 
 # References
 
-  - Anderson CG, Greenbaum E. 2012. Phylogeography of Northern
+-   Anderson CG, Greenbaum E. 2012. Phylogeography of Northern
     Populations of the Black-Tailed Rattlesnake (Crotalus molossus Baird
-    And Girard, 1853), With the Revalidation of C. ornatus Hallowell,
-    1854. Herpetological Monographs 26: 19–57.
-  - Blair C, Bryson RW, Linkem CW, Lazcano D, Klicka J, McCormack JE.
-    2018. Cryptic diversity in the Mexican highlands: Thousands of UCE
-    loci help illuminate phylogenetic relationships, species limits and
-    divergence times of montane rattlesnakes (Viperidae: Crotalus ).
+    And Girard, 1853), With the Revalidation of C. ornatus
+    Hallowell, 1854. Herpetological Monographs 26: 19–57.
+-   Blair C, Bryson RW, Linkem CW, Lazcano D, Klicka J, McCormack
+    JE. 2018. Cryptic diversity in the Mexican highlands: Thousands of
+    UCE loci help illuminate phylogenetic relationships, species limits
+    and divergence times of montane rattlesnakes (Viperidae: Crotalus ).
     Molecular Ecology Resources 0–2.
-  - Bryson RW, Linkem CW, Dorcas ME, Lathrop A, Jones JM, Alvarado-Díaz
+-   Bryson RW, Linkem CW, Dorcas ME, Lathrop A, Jones JM, Alvarado-Díaz
     J, Grünwald CI, Murphy RW. 2014. Multilocus species delimitation in
     the Crotalus triseriatus species group (serpentes: Viperidae:
     Crotalinae), with the description of two new species. Zootaxa 3826:
     475–496.
-  - Bryson RW, Murphy RW, Lathrop A, Lazcano-Villareal D. 2011.
+-   Bryson RW, Murphy RW, Lathrop A, Lazcano-Villareal D. 2011.
     Evolutionary drivers of phylogeographical diversity in the highlands
     of Mexico: A case study of the Crotalus triseriatus species group of
     montane rattlesnakes. Journal of Biogeography 38: 697–710.
-  - Campbell and Lamar. 2004. The Venomous Reptiles of the Western
+-   Campbell and Lamar. 2004. The Venomous Reptiles of the Western
     Hemisphere.
-  - Carbajal-Márquez RA, Cedeño-Vázquez JR, Martínez-Arce A, Neri-Castro
+-   Carbajal-Márquez RA, Cedeño-Vázquez JR, Martínez-Arce A, Neri-Castro
     E, Machkour-M’Rabet SC. 2020. Accessing cryptic diversity in
     Neotropical rattlesnakes (Serpentes: Viperidae: Crotalus) with the
     description of two new species. Zootaxa 4729: 451–481.
-  - Carrasco PA, Grazziotin FG, Cruz Farfán RS, Koch C, Antonio Ochoa J,
+-   Carrasco PA, Grazziotin FG, Cruz Farfán RS, Koch C, Antonio Ochoa J,
     Scrocchi GJ, Leynaud GC, Chaparro JC. 2019. A new species of
     Bothrops (Serpentes: Viperidae: Crotalinae) from Pampas del Heath,
     southeastern Peru, with comments on the systematics of the Bothrops
     neuwiedi species group. Zootaxa 4565: 301–344.
-  - Dal Vechio F, Prates I, Grazziotin FG, Zaher H, Rodrigues MT. 2018.
+-   Dal Vechio F, Prates I, Grazziotin FG, Zaher H, Rodrigues MT. 2018.
     Phylogeography and historical demography of the arboreal pit viper
     Bothrops bilineatus (Serpentes, Crotalinae) reveal multiple
     connections between Amazonian and Atlantic rain forests. Journal of
     Biogeography 45: 2415–2426.
-  - Davis MA, Douglas MR, Collyer ML, Douglas ME. 2016. Deconstructing a
+-   Davis MA, Douglas MR, Collyer ML, Douglas ME. 2016. Deconstructing a
     species-complex: geometric morphometric and molecular analyses
     define species in the Western Rattlesnake (Crotalus viridis). PLOS
     ONE 11: e0146166.
-  - Diniz-Sousa R, Moraes J do N, Rodrigues-da-Silva TM, Oliveira CS,
+-   Diniz-Sousa R, Moraes J do N, Rodrigues-da-Silva TM, Oliveira CS,
     Caldeira CA da S. 2020. A brief review on the natural history,
     venomics and the medical importance of bushmaster (Lachesis) pit
     viper snakes. Toxicon: X 7: 100053.
-  - Douglas ME, Douglas MR, Schuett GW, Porras LW, Thomason BL. 2007.
+-   Douglas ME, Douglas MR, Schuett GW, Porras LW, Thomason BL. 2007.
     Genealogical Concordance between Mitochondrial and Nuclear DNAs
     Supports Species Recognition of the Panamint Rattlesnake (Crotalus
     mitchellii stephensi). Copeia 2007: 920–932.
-  - Grünwald CI, Jones JM, Franz-Chávez H, Ahumada-Carrillo IT. 2015. A
+-   Grünwald CI, Jones JM, Franz-Chávez H, Ahumada-Carrillo IT. 2015. A
     new species of Ophryacus (Serpentes: Viperidae: Crotalinae) from
     eastern Mexico with comments of the taxonomy of related pitvipers.
     Mesoamerican Herpetology 2: 388–416.
-  - Heimes. 2016. Snakes of Mexico.
-  - Jadin RC, Smith EN, Campbell JA. 2011. Unravelling a tangle of
+-   Heimes. 2016. Snakes of Mexico.
+-   Jadin RC, Smith EN, Campbell JA. 2011. Unravelling a tangle of
     Mexican serpents: A systematic revision of highland pitvipers.
     Zoological Journal of the Linnean Society 163: 943–958.
-  - Mason AJ, Grazziotin FG, Zaher H, Lemmon AR, Moriarty Lemmon E,
+-   Mason AJ, Grazziotin FG, Zaher H, Lemmon AR, Moriarty Lemmon E,
     Parkinson CL. 2019. Reticulate evolution in nuclear Middle America
     causes discordance in the phylogeny of palm‐pitvipers (Viperidae:
     Bothriechis). Journal of Biogeography 46: 833–844.
-  - Meik JM, Schaack S, Flores-Villela O, Streicher JW. 2018.
+-   Meik JM, Schaack S, Flores-Villela O, Streicher JW. 2018.
     Integrative taxonomy at the nexus of population divergence and
     speciation in insular speckled rattlesnakes. Journal of Natural
     History 52: 989–1016.
-  - Meik JM, Streicher JW, Lawing AM, Flores-Villela O, Fujita MK. 2015.
+-   Meik JM, Streicher JW, Lawing AM, Flores-Villela O, Fujita MK. 2015.
     Limitations of climatic data for inferring species boundaries:
     Insights from speckled rattlesnakes. PLoS ONE 10: 1–19.
-  - Pace
-  - Reptile Database. 2020
-  - Roll et al. 2017
-  - Salazar-Valenzuela CD. 2016. Diversification in the Neotropics:
+-   Pace
+-   Reptile Database. 2020
+-   Roll et al. 2017
+-   Salazar-Valenzuela CD. 2016. Diversification in the Neotropics:
     Insights from Demographic and Phylogenetic Patterns of Lancehead
     Pitvipers (Bothrops spp.). The Ohio State University.
-  - Saldarriaga-Córdoba M, Parkinson CL, Daza JM, Wüster W, Sasa M.
+-   Saldarriaga-Córdoba M, Parkinson CL, Daza JM, Wüster W, Sasa M.
     2017. Phylogeography of the Central American lancehead Bothrops
     asper (SERPENTES: VIPERIDAE). PLoS ONE 12: 1–21.
-  - Smith EN, Ferrari-Castro JA. 2008. A new species of jumping pitviper
+-   Smith EN, Ferrari-Castro JA. 2008. A new species of jumping pitviper
     of the genus Atropoides (Serpentes: Viperidae: Crotalinae) from the
     Sierra de Botaderos and the Sierra la Muralla, Honduras. Zootaxa 68:
     57–68.
-  - Timms J, Chaparro JC, Venegas PJ, Salazar-Valenzuela D, Scrooch G,
+-   Timms J, Chaparro JC, Venegas PJ, Salazar-Valenzuela D, Scrooch G,
     Cuevas J, Leynaud G, Carrasco PA. 2019. A new species of pitviper of
     the genus Bothrops (Serpentes: Viperidae: Crotalinae) from the
     Central Andes of South America. Zootaxa 4656: 99–120.
-  - Yañez-Arenas C, Castaño-Quintero S, Rioja-Nieto R, Rodríguez-Medina
+-   Yañez-Arenas C, Castaño-Quintero S, Rioja-Nieto R, Rodríguez-Medina
     K, Chiappa-Carrara X. 2020. Assessing the Relative Role of
     Environmental Factors That Limit the Distribution of the Yucatan
     Rattlesnake (Crotalus tzabcan). Journal of Herpetology 54: 216.
