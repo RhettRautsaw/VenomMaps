@@ -33,7 +33,7 @@ log2raw<-function(l,h){
 #===================#
 #### Alpha Hull #####
 #===================#
-ahull <- function(occ_sf, concave_distance_lim = 5000, buffer_dist=50000){
+ahull <- function(occ_sf, concave_distance_lim = 5000, buffer_dist=0){
   occ_sf<-st_transform(occ_sf, crs=3857)
   poly=ne_countries(scale="large", returnclass = "sf") %>% st_transform(crs=3857) %>% st_buffer(0) %>% st_union()
   ahull=concaveman(occ_sf, length_threshold=concave_distance_lim, concavity=2) %>% st_buffer(buffer_dist) %>% 
