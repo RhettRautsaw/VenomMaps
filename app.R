@@ -65,13 +65,12 @@ countries_list<-sort(unique(unlist(strsplit(paste(unlist(info$countries), collap
 # UI
 ui <- navbarPage("VenomMaps", id="nav",
     
-    tags$head(includeHTML(("google-analytics.html"))),
-    
     ###################################
     ######### Interactive Map #########
     ###################################
     
     tabPanel("Interactive map",
+        tags$head(includeHTML(("google-analytics.html"))),
         div(class="outer",
             # Include custom styles and javascript
             tags$head(includeCSS("styles.css"), includeScript("gomap.js")),
