@@ -1,5 +1,6 @@
 # autokuenm
 ## Rhett M. Rautsaw
+<img align="right" src="autokuenm.svg" width=150>
 
 Species Distribution Modeling in one easy script. autokuenm.R is designed to take occurrence records and environmental data and prepare it for kuenm.
 
@@ -12,6 +13,8 @@ Specifically, this script will:
 	- Heuristic search involves identifying non-colinear variables with high permutation importance
 6. Run kuenm
 7. Summarize results
+
+![](autokuenm_flowchart.svg)
 
 # Installation
 
