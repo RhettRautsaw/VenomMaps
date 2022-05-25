@@ -5,16 +5,16 @@
 
 <br>
 
-[![](https://img.shields.io/badge/Shiny%20App-VenomMaps-blue)](https://rhettrautsaw.app/shiny/VenomMaps){target="blank"}
-[![](https://img.shields.io/badge/Published%20in-Scientific%20Data-blue)](https://doi.org/10.1038/s41597-022-01323-4){target="blank"}
-[![](https://img.shields.io/badge/License-CC%20BY-blue)](https://creativecommons.org/licenses/by/4.0/){target="blank"}
-[![](https://img.shields.io/badge/DOI-10.5281/zenodo.5637094-blue)](https://doi.org/10.5281/zenodo.5637094){target="blank"}
+[![](https://img.shields.io/badge/Shiny%20App-VenomMaps-blue)](https://rhettrautsaw.app/shiny/VenomMaps)
+[![](https://img.shields.io/badge/Published%20in-Scientific%20Data-blue)](https://doi.org/10.1038/s41597-022-01323-4)
+[![](https://img.shields.io/badge/License-CC%20BY-blue)](https://creativecommons.org/licenses/by/4.0/)
+[![](https://img.shields.io/badge/DOI-10.5281/zenodo.5637094-blue)](https://doi.org/10.5281/zenodo.5637094)
 
 # Table of Contents
 
-- Cleaned occurrence records for Viperidae from [GBIF](https://www.gbif.org/){target="blank"}, [HerpMapper](https://www.herpmapper.org/){target="blank"}, [Bison](https://bison.usgs.gov/){target="blank"}, [Brazil Snake Atlas](https://bioone.org/journals/South-American-Journal-of-Herpetology/volume-14/issue-sp1/SAJH-D-19-00120.1/Atlas-of-Brazilian-Snakes--Verified-Point-Locality-Maps-to/10.2994/SAJH-D-19-00120.1.short){target="blank"}, [BioWeb Ecuador](https://bioweb.bio/){target="blank"}, and custom databases/georeferencing. 
+- Cleaned occurrence records for Viperidae from [GBIF](https://www.gbif.org/), [HerpMapper](https://www.herpmapper.org/), [Bison](https://bison.usgs.gov/), [Brazil Snake Atlas](https://bioone.org/journals/South-American-Journal-of-Herpetology/volume-14/issue-sp1/SAJH-D-19-00120.1/Atlas-of-Brazilian-Snakes--Verified-Point-Locality-Maps-to/10.2994/SAJH-D-19-00120.1.short), [BioWeb Ecuador](https://bioweb.bio/), and custom databases/georeferencing. 
   - [`data/occurrence`](https://github.com/RhettRautsaw/VenomMaps/tree/master/data/occurrence)
-- Updated distribution maps in `geojson` format for all New World Pitvipers as well as distribution maps for Old World Vipers from [Roll et al. 2017](https://www.nature.com/articles/s41559-017-0332-2){target="blank"}.
+- Updated distribution maps in `geojson` format for all New World Pitvipers as well as distribution maps for Old World Vipers from [Roll et al. 2017](https://www.nature.com/articles/s41559-017-0332-2).
   - [`data/distributions`](https://github.com/RhettRautsaw/VenomMaps/tree/master/data/distributions)
 - Final species distribution models for all New World pitvipers
   - [`data/sdms`](https://github.com/RhettRautsaw/VenomMaps/tree/master/data/sdms)
@@ -30,7 +30,7 @@
 # Shiny App
 
 You can view the VenomMaps Shiny App for free on my Digital Ocean Droplet: 
-[RhettRautsaw.app/shiny/VenomMaps](https://RhettRautsaw.app/shiny/VenomMaps/){target="blank"}
+[RhettRautsaw.app/shiny/VenomMaps](https://RhettRautsaw.app/shiny/VenomMaps/)
 
 ## User Guide
 
