@@ -6,9 +6,9 @@
 <br>
 
 [![](https://img.shields.io/badge/Shiny%20App-VenomMaps-blue)](https://rhettrautsaw.app/shiny/VenomMaps)
-[![](https://img.shields.io/badge/Published%20in-Scientific%20Data-blue)](https://doi.org/10.1038/s41597-022-01323-4)
+[![](https://img.shields.io/badge/Citation-Scientific%20Data-blue)](https://doi.org/10.1038/s41597-022-01323-4)
+[![](https://img.shields.io/badge/Archive-10.5281/zenodo.5637094-blue)](https://doi.org/10.5281/zenodo.5637094)
 [![](https://img.shields.io/badge/License-CC%20BY-blue)](https://creativecommons.org/licenses/by/4.0/)
-[![](https://img.shields.io/badge/DOI-10.5281/zenodo.5637094-blue)](https://doi.org/10.5281/zenodo.5637094)
 
 # Table of Contents
 
