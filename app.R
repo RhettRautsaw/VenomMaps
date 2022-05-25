@@ -83,7 +83,7 @@ ui <- navbarPage("VenomMaps", id="nav",
                 img(src = "VenomMaps.png", height = 300, width = 250, style="display: block; margin-left: auto; margin-right: auto"),
 
                 tags$div(HTML("<br><center><p><a href=\"https://github.com/RhettRautsaw/VenomMaps\"><img src=\"https://img.shields.io/badge/GitHub-RhettRautsaw/VenomMaps-blue\"></a></p></center>")),
-                tags$div(HTML("<center><p><a href=\"\"><img src=\"https://img.shields.io/badge/Published%20in-Scientific%20Data-blue\"></a></p></center>")),
+                tags$div(HTML("<center><p><a href=\"https://doi.org/10.1038/s41597-022-01323-4\"><img src=\"https://img.shields.io/badge/Published%20in-Scientific%20Data-blue\"></a></p></center>")),
                 tags$div(HTML("<center><p><a href=\"https://creativecommons.org/licenses/by/4.0/\"><img src=\"https://img.shields.io/badge/License-CC%20BY-blue\"></a></p></center>")),
                 tags$div(HTML("<center><p><a href=\"https://doi.org/10.5281/zenodo.5637094\"><img src=\"https://img.shields.io/badge/DOI-10.5281/zenodo.5637094-blue\"></a></p></center>")),
                 
