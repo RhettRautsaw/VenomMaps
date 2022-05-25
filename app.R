@@ -82,10 +82,10 @@ ui <- navbarPage("VenomMaps", id="nav",
                 width = 400, style = "overflow-y: scroll;",
                 img(src = "VenomMaps.png", height = 300, width = 250, style="display: block; margin-left: auto; margin-right: auto"),
 
-                tags$div(HTML("<br><center><p><a href=\"https://github.com/RhettRautsaw/VenomMaps\"><img src=\"https://img.shields.io/badge/GitHub-RhettRautsaw/VenomMaps-blue\"></a></p></center>")),
-                tags$div(HTML("<center><p><a href=\"https://doi.org/10.1038/s41597-022-01323-4\"><img src=\"https://img.shields.io/badge/Published%20in-Scientific%20Data-blue\"></a></p></center>")),
-                tags$div(HTML("<center><p><a href=\"https://creativecommons.org/licenses/by/4.0/\"><img src=\"https://img.shields.io/badge/License-CC%20BY-blue\"></a></p></center>")),
-                tags$div(HTML("<center><p><a href=\"https://doi.org/10.5281/zenodo.5637094\"><img src=\"https://img.shields.io/badge/DOI-10.5281/zenodo.5637094-blue\"></a></p></center>")),
+                tags$div(HTML("<br><center><p><a target=\"_blank\" href=\"https://github.com/RhettRautsaw/VenomMaps\"><img src=\"https://img.shields.io/badge/GitHub-RhettRautsaw/VenomMaps-blue\"></a></p></center>")),
+                tags$div(HTML("<center><p><a target=\"_blank\" href=\"https://doi.org/10.1038/s41597-022-01323-4\"><img src=\"https://img.shields.io/badge/Published%20in-Scientific%20Data-blue\"></a></p></center>")),
+                tags$div(HTML("<center><p><a target=\"_blank\" href=\"https://creativecommons.org/licenses/by/4.0/\"><img src=\"https://img.shields.io/badge/License-CC%20BY-blue\"></a></p></center>")),
+                tags$div(HTML("<center><p><a target=\"_blank\" href=\"https://doi.org/10.5281/zenodo.5637094\"><img src=\"https://img.shields.io/badge/DOI-10.5281/zenodo.5637094-blue\"></a></p></center>")),
                 
                 selectizeInput(inputId = "species", label = h4("Species:"), choices = species_list, 
                                multiple = TRUE),
@@ -134,9 +134,9 @@ ui <- navbarPage("VenomMaps", id="nav",
                 h4("____________________________________"),
                 
                 h3("Acknowledgements"),
-                p("Distributions of Old World Viperidae were obtained from ", a(href="https://www.nature.com/articles/s41559-017-0332-2", "GARD 1.1")),
-                p("Information on max snake lengths was obtained from ", a(href="https://onlinelibrary.wiley.com/doi/abs/10.1111/geb.12398", "Feldman et al. 2015")),
-                p("Information on descriptive citations, common names, and subspecies was obtained from the ", a(href="https://reptile-database.reptarium.cz/", "Reptile Database")),
+                p("Distributions of Old World Viperidae were obtained from ", a(target="_blank", href="https://www.nature.com/articles/s41559-017-0332-2", "GARD 1.1")),
+                p("Information on max snake lengths was obtained from ", a(target="_blank", href="https://onlinelibrary.wiley.com/doi/abs/10.1111/geb.12398", "Feldman et al. 2015")),
+                p("Information on descriptive citations, common names, and subspecies was obtained from the ", a(target="_blank", href="https://reptile-database.reptarium.cz/", "Reptile Database")),
                 
                 #h4("____________________________________"),
                 
