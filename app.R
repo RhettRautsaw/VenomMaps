@@ -81,6 +81,7 @@ ui <- navbarPage("VenomMaps", id="nav",
                 draggable = TRUE, top = 60, left = "auto", right = 20, bottom = 50,
                 width = 400, style = "overflow-y: scroll;",
                 img(src = "VenomMaps.png", height = 300, width = 250, style="display: block; margin-left: auto; margin-right: auto"),
+                h5(HTML("<center><br>Best viewed on a desktop computer!</center>")),
 
                 tags$div(HTML("<br><center><p><a target=\"_blank\" href=\"https://github.com/RhettRautsaw/VenomMaps\"><img src=\"https://img.shields.io/badge/User%20Guide-GitHub-blue\"></a></p></center>")),
                 tags$div(HTML("<center><p><a target=\"_blank\" href=\"https://doi.org/10.1038/s41597-022-01323-4\"><img src=\"https://img.shields.io/badge/Citation-Scientific%20Data-blue\"></a></p></center>")),
