@@ -387,7 +387,78 @@
 
     @media (max-width: 720px) {
       #side-panel {
-        width: min(320px, 88vw);
+        top: auto;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: auto;
+        height: min(62vh, 560px);
+        padding: 10px 10px calc(12px + env(safe-area-inset-bottom, 0px));
+        border-radius: 18px 18px 0 0;
+        background: rgba(255, 255, 255, 0.97);
+      }
+
+      #side-panel.collapsed {
+        width: auto;
+        height: 52px;
+        padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+        border-radius: 18px 18px 0 0;
+      }
+
+      .panel-header {
+        justify-content: center;
+        margin-bottom: 4px;
+      }
+
+      #panel-toggle {
+        width: 72px;
+        border-radius: 999px;
+      }
+
+      .panel-content {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
+      .panel-section {
+        margin-top: 12px;
+        padding-top: 10px;
+      }
+
+      #panel-logo {
+        width: 50%;
+        margin-bottom: 6px;
+      }
+
+      .panel-actions button {
+        flex: 1 1 calc(50% - 8px);
+      }
+
+      #export-section {
+        display: none;
+      }
+
+      .leaflet-bottom.leaflet-left {
+        bottom: auto;
+        top: 10px;
+      }
+
+      .leaflet-control-layers,
+      .leaflet-control.subspecies-control {
+        max-width: min(300px, calc(100vw - 20px));
+        margin-left: 0;
+      }
+
+      #subspecies-legend {
+        max-height: 130px;
+        min-width: 0;
+      }
+
+      .legend-item {
+        font-size: 10px;
+      }
+
+      .leaflet-control-layers {
+        font-size: 12px;
       }
     }
   </style>
@@ -475,7 +546,7 @@
           <div class="legend-item"><span class="legend-swatch" style="background:#facc15;"></span><span>Yellow: species ID has been altered</span></div>
         </div>
       </div>
-      <div class="panel-section">
+      <div id="export-section" class="panel-section">
         <label>Export</label>
         <div class="panel-actions">
           <button id="save-pdf" type="button">Save Current View to PDF</button>
@@ -685,12 +756,33 @@
       }
     }
 
-    panelToggle.addEventListener('click', () => {
-      const isCollapsed = sidePanel.classList.toggle('collapsed');
-      panelToggle.textContent = isCollapsed ? '❮' : '❯';
+    function isMobileLayout() {
+      return window.matchMedia('(max-width: 720px)').matches;
+    }
+
+    function updatePanelToggleAppearance(isCollapsed) {
+      panelToggle.textContent = isMobileLayout()
+        ? (isCollapsed ? '▴' : '▾')
+        : (isCollapsed ? '❮' : '❯');
       panelToggle.setAttribute('aria-expanded', String(!isCollapsed));
       panelToggle.setAttribute('aria-label', isCollapsed ? 'Expand panel' : 'Collapse panel');
+    }
+
+    panelToggle.addEventListener('click', () => {
+      const isCollapsed = sidePanel.classList.toggle('collapsed');
+      updatePanelToggleAppearance(isCollapsed);
     });
+
+    window.addEventListener('resize', () => {
+      updatePanelToggleAppearance(sidePanel.classList.contains('collapsed'));
+    });
+
+    function initializeResponsivePanelState() {
+      if (isMobileLayout()) {
+        sidePanel.classList.add('collapsed');
+      }
+      updatePanelToggleAppearance(sidePanel.classList.contains('collapsed'));
+    }
 
     function toSpeciesLabel(fileName) {
       return fileName.replace('.geojson', '').replaceAll('_', ' ');
@@ -1673,6 +1765,7 @@
       applySpeciesFilters();
     }
 
+    initializeResponsivePanelState();
     loadSpeciesOptions();
   </script>
 </body>
