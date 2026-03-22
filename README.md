@@ -5,7 +5,7 @@
 
 <br>
 
-[![](https://img.shields.io/badge/Shiny%20App-VenomMaps-blue)](https://rhettrautsaw.app/shiny/VenomMaps)
+[![](https://img.shields.io/badge/Web%20App-VenomMaps-blue)](https://rhettrautsaw.github.io/VenomMaps)
 [![](https://img.shields.io/badge/Citation-Scientific%20Data-blue)](https://doi.org/10.1038/s41597-022-01323-4)
 [![](https://img.shields.io/badge/Archive-10.5281/zenodo.5637094-blue)](https://doi.org/10.5281/zenodo.5637094)
 [![](https://img.shields.io/badge/License-CC%20BY-blue)](https://creativecommons.org/licenses/by/4.0/)
@@ -22,80 +22,163 @@
   - [`code/*`](https://github.com/RhettRautsaw/VenomMaps/tree/master/code)
 - Code used to construct species distribution models
   - [`code/autokuenm/*`](https://github.com/RhettRautsaw/VenomMaps/tree/master/code/autokuenm)
-- Shiny App to visualize results
-  - [`app.R`](https://RhettRautsaw.app/shiny/VenomMaps/)
+- [Web App](https://rhettrautsaw.github.io/VenomMaps) to visualize results
   - User Guide found below
 
+# Updates/Changelog
+- **2026-03-22**: 
+	- Shiny app was updated to support the latest version of R and package dependencies including switching to use `sf` and `terra` instead of `sp` and `raster`. 
+	- Shiny app is being deprecated in favor of a new web app built directly with HTML/CSS/JS. This results in significant speed and performance improvements. 
+		- The new web app is found in this repository [rhettrautsaw.github.io/VenomMaps](https://rhettrautsaw.github.io/VenomMaps).
+		- **PLEASE BOOKMARK THE NEW PAGE BY JULY 2026**
 
-# Shiny App
+# Web App
 
-You can view the VenomMaps Shiny App for free on my Digital Ocean Droplet: 
-[RhettRautsaw.app/shiny/VenomMaps](https://RhettRautsaw.app/shiny/VenomMaps/)
+You can view VenomMaps at 
+[rhettrautsaw.github.io/VenomMaps](https://rhettrautsaw.github.io/VenomMaps)
 
 ## User Guide
 
-After opening the app you should be greeted with the following page:
+After opening the app you should see the full-page Leaflet map with the VenomMaps control panel on the right:
 
-<img align="center" src="www/screenshot1.png" width=100%>
-
-<br>
-
-*** 
+<img align="center" src="www/01_VenomMaps.png" width=100%>
 
 <br>
 
-Next, (1) enter a **Species** into the box on the right and (2) hit **Update** to plot the distribution. 
-Multiple species can be input at once! 
-
-<img align="center" src="www/screenshot2.png" width=100%>
+***
 
 <br>
 
-*** 
+### Basemaps and Overlays
+
+<img align="right" src="www/02_Basemap.png" width="32%">
+
+The control in the lower left lets you switch among the available basemaps:
+
+- `Topography`
+- `Open Street Map`
+- `Terrain`
+- `Satellite`
+
+You can also toggle reference overlays for:
+
+- `Boundaries`
+- `Labels`
 
 <br>
 
-You can filter the list of species in the **Species** box by country and available SDMs. 
-For example, (1) entering "United States of America" in the **Country** box and 
-(2) checking the box for the **Logistic Model** will filter the (4) **Species** box to only show species that fit these criteria. 
-
-If you only want to view the SDM rather than the distribution polygon + SDM, you can (3) check the **Clear Distribution** box.
-Remember to (5) **Update** to make the changes. 
-
-Please note that SDMs are large and take a long time to plot. Please be patient. Alternatively, you can download this repository and run the Shiny App locally for faster plotting (see below). 
-
-The box in the lower left corner (6) has alternate basemaps on which to view the data. 
-We recommend changing to the "Terrain" map to view SDMs. 
-
-Lastly, a table with SDM statistics (7) will continuously update based on the (4) **Species** selected.
-
-<img align="center" src="www/screenshot3.1.png" width=100%>
+***
 
 <br>
 
-*** 
+### Filter by Country or Your Location
+
+<img align="right" src="www/03_Filter.png" width="32%">
+
+Use the `Filter by country` box to limit the species list to taxa that overlap a selected country.  
+The `Species Near Me` button uses your browser location to identify species overlapping your current area.  
+`Clear Filters` resets both the country and location filters.
 
 <br>
 
-You can also plot the 10th percentile training threshold models and although it is not shown, you can also add **Occurrence Records**.
-
-<img align="center" src="www/screenshot3.2.png" width=100%>
+***
 
 <br>
 
-*** 
+### Select Species
+
+<img align="right" src="www/04_SelectSpecies.png" width="32%">
+
+The `Select a species` box supports multiple selections. Search by:
+
+- scientific name
+- common name
+
+For example, searches such as `Agkistrodon piscivorus`, `Cottonmouth`, and `Water Moccasin` will all help you find the same taxon when aliases are available.
+
+The dropdown shows scientific names in bold italics, with common names listed underneath.
+
+Once selected, species distributions are drawn on the map and colored by `Subspecies` when that field is present in the GeoJSON:
+
+<img align="center" src="www/04_SelectSpecies_Map.png" width=100%>
 
 <br>
 
-You can download the distribution map using the **Download Shapefile** option. There is also a second tab at the top of the page (**General Information**) which will give you some more information such as the common name, tell you when the species was described, subspecies, and the maximum length for the species compared to all other viper species:
-
-<img align="center" src="www/screenshot4.png" width=100%>
+***
 
 <br>
 
-*** 
+### Species Distribution Models (SDMs)
+
+<img align="right" src="www/05_SelectSDM.png" width="32%">
+
+SDMs can be displayed using either:
+
+- `Logistic SDM`
+- `Threshold SDM`
+
+Only one SDM type can be active at a time. The `Show distributions` switch can be left on to overlay SDMs with the polygon distribution, or turned off to view SDMs by themselves.
+
+If the SDM display does not update when switching model types, refresh the page and try again.
+
+Example SDM display:
+
+<img align="center" src="www/05_SelectSDM_Map.png" width=100%>
 
 <br>
+
+***
+
+<br>
+
+### Occurrence Records
+
+<img align="right" src="www/06_Occurrence.png" width="32%">
+
+Use the `Show occurrence records` switch to add cleaned occurrence points for the selected species.  
+Occurrence points are colored by `flag`, with the legend shown in the control panel.
+
+Clicking a point displays:
+
+- `ID`
+- recorded taxonomy
+- updated taxonomy
+- coordinate accuracy
+- flags
+
+Example occurrence display:
+
+<img align="center" src="www/06_Occurrence_Map.png" width=100%>
+
+<br>
+
+***
+
+<br>
+
+### Export and Downloads
+
+<img align="right" src="www/07_Export.png" width="32%">
+
+The `Export` section currently supports:
+
+- `Save Current View to PDF`
+- `Download Distribution (geojson)`
+- `Download SDM`
+
+The PDF export is formatted to print the map view with the legend and VenomMaps logo, without the input panel.
+
+Example exported map view:
+
+<img align="center" src="www/07_Export_Map.png" width=100%>
+
+<br>
+
+***
+
+<br>
+
+# Shiny App (deprecated)
 
 ## Running the Application Locally
 
