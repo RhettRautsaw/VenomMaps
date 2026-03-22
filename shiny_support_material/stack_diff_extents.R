@@ -1,38 +1,12 @@
 # files <- list.files("data/enms", "*.tif", full.names = T)
 
 stack_diff_extents<-function(files){
-  xmin = xmax = ymin = ymax = NA
+  rasters <- lapply(files, terra::rast)
+  extents <- lapply(rasters, terra::ext)
+  combined_extent <- Reduce(terra::union, extents)
   
-  for(i in files){
-    tmp<-raster::raster(i)
-    e<-raster::extent(tmp)
-    
-    if(is.na(xmin) | e[1]<xmin){
-      xmin=e[1]
-    }
-    if(is.na(xmax) | e[2]>xmax){
-      xmax=e[2]
-    }
-    if(is.na(ymin) | e[3]<ymin){
-      ymin=e[3]
-    }
-    if(is.na(ymax) | e[4]>ymax){
-      ymax=e[4]
-    }
-  }
-  
-  e<-extent(c(xmin,xmax,ymin,ymax))
-  
-  tmp<-raster::raster(files[1])
-  tmp<-extend(tmp,e,value=NA)
-  
-  for(i in files[-1]){
-    tmp2<-raster::raster(i)
-    tmp2<-extend(tmp2,e,value=NA)
-    tmp<-stack(tmp,tmp2)
-  }
-  
-  return(tmp)
+  extended <- lapply(rasters, terra::extend, y = combined_extent, fill = NA)
+  do.call(c, extended)
 }
 
 # combined_niches<-stack_diff_extents(files)
@@ -84,4 +58,3 @@ stack_diff_extents<-function(files){
 #     addRasterImage(tmp, colors = rev(pal)) #%>% addPolygons(data=dist)
 # 
 # plot(tmp)
-

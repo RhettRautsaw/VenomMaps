@@ -120,6 +120,19 @@
       font-size: 13px;
     }
 
+    .selectize-sci-name {
+      font-style: italic;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .selectize-note {
+      margin-top: 2px;
+      font-size: 11px;
+      line-height: 1.35;
+      color: #475569;
+    }
+
     .panel-help {
       margin: 6px 0 0;
       font-size: 11px;
@@ -312,6 +325,66 @@
       font-size: 13px;
     }
 
+    #print-legend,
+    #print-logo {
+      display: none;
+    }
+
+    #print-legend {
+      position: fixed;
+      left: 18px;
+      bottom: 18px;
+      z-index: 2000;
+      max-width: 280px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+    }
+
+    #print-logo {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 2000;
+      width: 140px;
+      height: auto;
+      opacity: 0.95;
+    }
+
+    .print-legend-section + .print-legend-section {
+      margin-top: 10px;
+      border-top: 1px solid #d8d8d8;
+      padding-top: 8px;
+    }
+
+    @media print {
+      html,
+      body {
+        height: 100%;
+      }
+
+      body > *:not(#map):not(#print-legend):not(#print-logo) {
+        display: none !important;
+      }
+
+      #map {
+        position: fixed;
+        inset: 0;
+        height: 100vh !important;
+        width: 100vw !important;
+      }
+
+      .leaflet-control-container {
+        display: none !important;
+      }
+
+      #print-legend,
+      #print-logo {
+        display: block !important;
+      }
+    }
+
     @media (max-width: 720px) {
       #side-panel {
         width: min(320px, 88vw);
@@ -321,6 +394,8 @@
 </head>
 <body>
   <div id="map" aria-label="Venomous snake map"></div>
+  <div id="print-legend" aria-hidden="true"></div>
+  <img id="print-logo" src="www/VenomMaps.png" alt="VenomMaps logo" aria-hidden="true" />
   <aside id="side-panel" aria-label="Map options panel">
     <div class="panel-header">
       <button id="panel-toggle" type="button" aria-expanded="true" aria-label="Collapse panel">❯</button>
@@ -347,19 +422,15 @@
         <p class="panel-help">Start typing a country name (e.g., United States).</p>
         <div class="panel-actions">
           <button id="use-location" type="button">Species Near Me</button>
-          <button id="clear-location" type="button" disabled>Clear Location Filter</button>
+          <button id="clear-location" type="button" disabled>Clear Filters</button>
         </div>
         <p id="location-status"></p>
       </div>
       <div class="panel-section">
-        <label for="species-select">Distribution species</label>
+        <label for="species-select">Select a species</label>
         <select id="species-select" aria-label="Select species distributions" multiple>
         </select>
-        <p class="panel-help">Type to search and click to add multiple species.</p>
-        <p id="species-status"></p>
-      </div>
-      <div class="panel-section">
-        <label>Species Distribution Models (SDMs)</label>
+        <p class="panel-help">Type a scientific or common name and click to add multiple species.</p>
         <div class="toggle-row">
           <span class="toggle-label">Show distributions</span>
           <label class="ios-switch">
@@ -367,21 +438,29 @@
             <span class="ios-slider"></span>
           </label>
         </div>
+        <p id="species-status"></p>
+      </div>
+      <div class="panel-section">
+        <label>Species Distribution Models (SDMs)</label>
         <div class="toggle-row">
-          <span class="toggle-label">Show SDMs</span>
+          <span class="toggle-label">Logistic SDM</span>
           <label class="ios-switch">
-            <input id="toggle-sdms" type="checkbox" />
+            <input id="toggle-logistic-sdm" type="checkbox" />
             <span class="ios-slider"></span>
           </label>
         </div>
         <div class="toggle-row">
-          <span class="toggle-label">Use threshold model (off = logistic)</span>
+          <span class="toggle-label">Threshold SDM</span>
           <label class="ios-switch">
-            <input id="toggle-threshold-model" type="checkbox" />
+            <input id="toggle-threshold-sdm" type="checkbox" />
             <span class="ios-slider"></span>
           </label>
         </div>
+        <p class="panel-help">If the SDM display does not change, refresh the page and try again.</p>
         <p id="sdm-status"></p>
+      </div>
+      <div class="panel-section">
+        <label>Occurrence Records</label>
         <div class="toggle-row">
           <span class="toggle-label">Show occurrence records</span>
           <label class="ios-switch">
@@ -395,6 +474,22 @@
           <div class="legend-item"><span class="legend-swatch" style="background:#2563eb;"></span><span>Blue: points are not on land</span></div>
           <div class="legend-item"><span class="legend-swatch" style="background:#facc15;"></span><span>Yellow: species ID has been altered</span></div>
         </div>
+      </div>
+      <div class="panel-section">
+        <label>Export</label>
+        <div class="panel-actions">
+          <button id="save-pdf" type="button">Save Current View to PDF</button>
+          <button id="download-distribution" type="button">Download Distribution (geojson)</button>
+          <button id="download-sdm" type="button">Download SDM</button>
+        </div>
+        <p id="download-status"></p>
+      </div>
+      <div class="panel-section">
+        <label>Acknowledgements</label>
+        <p class="panel-help">
+          Distributions of Old World Viperidae were obtained from
+          <a target="_blank" rel="noopener noreferrer" href="https://www.nature.com/articles/s41559-017-0332-2">GARD v1.1</a>.
+        </p>
       </div>
     </div>
   </aside>
@@ -410,6 +505,7 @@
   <script src="https://unpkg.com/georaster-layer-for-leaflet/dist/georaster-layer-for-leaflet.min.js"></script>
   <script src="data/distributions/species-manifest.js"></script>
   <script src="data/species-countries.js"></script>
+  <script src="data/species-common-names.js"></script>
   <script src="data/distributions/species-bboxes.js"></script>
   <script src="data/sdms/sdm-manifest.js"></script>
   <script src="data/occurrence/occurrence-manifest.js"></script>
@@ -428,52 +524,57 @@
       attribution: '&copy; mundialis'
     });
 
-    const esriWorldStreetMap = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    const openStreetMap = L.tileLayer(
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       {
-        attribution: 'Tiles &copy; Esri'
+        crossOrigin: true,
+        attribution: '&copy; OpenStreetMap contributors'
       }
     );
 
-    const esriWorldTerrain = L.tileLayer(
+    const terrainMap = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
       {
+        crossOrigin: true,
         attribution: 'Tiles &copy; Esri'
       }
     );
 
-    const esriWorldImagery = L.tileLayer(
+    const satelliteMap = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
+        crossOrigin: true,
         attribution: 'Tiles &copy; Esri'
       }
     );
 
     const countryStateBoundaries = L.tileLayer(
-      'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+      'https://tiles.stadiamaps.com/tiles/stamen_toner_lines/{z}/{x}/{y}.png',
       {
-        attribution: 'Boundaries &copy; Esri'
+        crossOrigin: true,
+        attribution: '&copy; Stadia Maps &copy; Stamen Design'
       }
     );
 
     const labelsOverlay = L.tileLayer(
-      'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Reference_Overlay/MapServer/tile/{z}/{y}/{x}',
+      'https://tiles.stadiamaps.com/tiles/stamen_toner_labels/{z}/{x}/{y}.png',
       {
-        attribution: 'Labels &copy; Esri'
+        crossOrigin: true,
+        attribution: '&copy; Stadia Maps &copy; Stamen Design'
       }
     );
 
     topoWms.addTo(map);
 
     const baseLayers = {
-      'Topography (Mundialis)': topoWms,
-      'Esri.WorldStreetMap': esriWorldStreetMap,
-      'Esri.WorldTerrain': esriWorldTerrain,
-      'Esri.WorldImagery': esriWorldImagery
+      Topography: topoWms,
+      'Open Street Map': openStreetMap,
+      Terrain: terrainMap,
+      Satellite: satelliteMap
     };
 
     const overlays = {
-      'Country/State Boundaries': countryStateBoundaries,
+      Boundaries: countryStateBoundaries,
       Labels: labelsOverlay
     };
 
@@ -503,12 +604,17 @@
     const useLocationButton = document.getElementById('use-location');
     const clearLocationButton = document.getElementById('clear-location');
     const toggleDistributionsSwitch = document.getElementById('toggle-distributions');
-    const toggleSdmsSwitch = document.getElementById('toggle-sdms');
-    const thresholdModelSwitch = document.getElementById('toggle-threshold-model');
+    const toggleLogisticSdmSwitch = document.getElementById('toggle-logistic-sdm');
+    const toggleThresholdSdmSwitch = document.getElementById('toggle-threshold-sdm');
     const toggleOccurrencesSwitch = document.getElementById('toggle-occurrences');
+    const savePdfButton = document.getElementById('save-pdf');
+    const downloadDistributionButton = document.getElementById('download-distribution');
+    const downloadSdmButton = document.getElementById('download-sdm');
+    const printLegend = document.getElementById('print-legend');
     const locationStatus = document.getElementById('location-status');
     const speciesStatus = document.getElementById('species-status');
     const sdmStatus = document.getElementById('sdm-status');
+    const downloadStatus = document.getElementById('download-status');
     const brBgPalette = [
       '#543005',
       '#8c510a',
@@ -529,6 +635,7 @@
     const sdmRasterCache = new Map();
     const occurrenceCache = new Map();
     const speciesCountryMap = window.venomSpeciesCountries || {};
+    const speciesCommonNameMap = window.venomSpeciesCommonNames || {};
     const speciesBBoxMap = window.venomSpeciesBBoxes || {};
     const sdmManifest = window.venomSdmManifest || {};
     const occurrenceManifest = window.venomOccurrenceManifest || {};
@@ -542,8 +649,8 @@
     let locationSpeciesSet = null;
     let locationPointMarker = null;
     let showDistributions = true;
-    let showSdms = false;
-    let useThresholdModel = false;
+    let showLogisticSdm = false;
+    let showThresholdSdm = false;
     let showOccurrences = false;
     let currentSdmPaneName = null;
 
@@ -587,6 +694,33 @@
 
     function toSpeciesLabel(fileName) {
       return fileName.replace('.geojson', '').replaceAll('_', ' ');
+    }
+
+    function getCommonNames(fileName) {
+      const names = speciesCommonNameMap[fileName];
+      const baseNames = Array.isArray(names) ? names.filter(Boolean) : [];
+      const expandedNames = [...baseNames];
+      for (const name of baseNames) {
+        const lowerName = name.toLowerCase();
+        if (lowerName.includes('cottonmouth') && !expandedNames.some((item) => item.toLowerCase() === 'water moccasin')) {
+          expandedNames.push('Water Moccasin');
+        }
+        if (lowerName.includes('mexican moccasin') && !expandedNames.some((item) => item.toLowerCase() === 'cantil')) {
+          expandedNames.push('Cantil');
+        }
+      }
+      return expandedNames;
+    }
+
+    function getSpeciesOptionData(fileName) {
+      const commonNames = getCommonNames(fileName);
+      return {
+        value: fileName,
+        text: toSpeciesLabel(fileName),
+        aliases: commonNames.join(' | '),
+        commonNames,
+        searchText: [toSpeciesLabel(fileName), ...commonNames].join(' | ')
+      };
     }
 
     function getSubspecies(feature) {
@@ -650,6 +784,7 @@
       const entries = [...colorMap.entries()].sort((a, b) => a[0].localeCompare(b[0]));
       if (!entries.length) {
         subspeciesLegend.innerHTML = '';
+        updatePrintLegend();
         return;
       }
 
@@ -664,6 +799,30 @@
         .join('');
       const remainderHtml = remainder > 0 ? `<div class="legend-item"><span>+${remainder} more subspecies</span></div>` : '';
       subspeciesLegend.innerHTML = legendHtml + remainderHtml;
+      updatePrintLegend();
+    }
+
+    function updatePrintLegend() {
+      const sections = [];
+      const subspeciesHtml = subspeciesLegend ? subspeciesLegend.innerHTML.trim() : '';
+      if (subspeciesHtml) {
+        sections.push(
+          `<div class="print-legend-section"><p class="legend-title">Subspecies</p>${subspeciesHtml}</div>`
+        );
+      }
+      if (showOccurrences) {
+        sections.push(
+          `<div class="print-legend-section"><p class="legend-title">Occurrence Flags</p>` +
+          `<div class="legend-item"><span class="legend-swatch" style="background:#ef4444;"></span><span>Dubious/questionable</span></div>` +
+          `<div class="legend-item"><span class="legend-swatch" style="background:#9ca3af;"></span><span>Beyond distribution</span></div>` +
+          `<div class="legend-item"><span class="legend-swatch" style="background:#2563eb;"></span><span>Not on land</span></div>` +
+          `<div class="legend-item"><span class="legend-swatch" style="background:#facc15;"></span><span>Species ID altered</span></div>` +
+          `</div>`
+        );
+      }
+      printLegend.innerHTML = sections.length
+        ? `<p class="legend-title">Legend</p>${sections.join('')}`
+        : '';
     }
 
     function getSpreadPaletteColors(count) {
@@ -725,10 +884,15 @@
       }
     }
 
+    function syncFilterClearButton() {
+      clearLocationButton.disabled = !locationSpeciesSet && !countryFilterValue;
+    }
+
     function initCountrySelectize() {
       if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.selectize) {
         countryFilterSelect.addEventListener('change', () => {
           countryFilterValue = countryFilterSelect.value;
+          syncFilterClearButton();
           applySpeciesFilters();
         });
         return;
@@ -748,6 +912,7 @@
       countrySelectize = $countrySelect[0].selectize;
       countrySelectize.on('change', (value) => {
         countryFilterValue = value || '';
+        syncFilterClearButton();
         applySpeciesFilters();
       });
     }
@@ -766,16 +931,38 @@
       const $speciesSelect = window.jQuery(speciesSelect);
       $speciesSelect.selectize({
         plugins: ['remove_button'],
+        options: allSpeciesFiles.map((fileName) => getSpeciesOptionData(fileName)),
+        items: [],
         valueField: 'value',
         labelField: 'text',
-        searchField: ['text'],
+        searchField: ['text', 'aliases', 'searchText'],
         sortField: 'text',
         maxOptions: 1000,
-        placeholder: 'Search species and add...',
-        closeAfterSelect: false
+        placeholder: 'Search scientific or common name...',
+        closeAfterSelect: false,
+        score(search) {
+          const baseScore = this.getScoreFunction(search);
+          return (item) => {
+            const aliasBoost = String(item.searchText || '').toLowerCase().includes(String(search || '').toLowerCase()) ? 1 : 0;
+            return Math.max(baseScore(item), aliasBoost);
+          };
+        },
+        render: {
+          option(item, escape) {
+            const aliasLine = Array.isArray(item.commonNames) && item.commonNames.length
+              ? `<div class="selectize-note">${escape(item.commonNames.join(', '))}</div>`
+              : '';
+            return `<div><div class="selectize-sci-name">${escape(item.text)}</div>${aliasLine}</div>`;
+          },
+          item(item, escape) {
+            return `<div class="selectize-sci-name">${escape(item.text)}</div>`;
+          }
+        }
       });
 
       speciesSelectize = $speciesSelect[0].selectize;
+      speciesSelectize.clearOptions();
+      speciesSelectize.addOption(allSpeciesFiles.map((fileName) => getSpeciesOptionData(fileName)));
       speciesSelectize.on('change', () => {
         updateDistributionSelection(speciesSelectize.items.slice());
       });
@@ -791,12 +978,14 @@
 
     function applySpeciesFilters() {
       const filteredSpecies = getFilteredSpeciesFiles();
+      syncFilterClearButton();
 
       if (speciesSelectize) {
         const selectedNow = speciesSelectize.items.slice();
         const validSelected = selectedNow.filter((item) => filteredSpecies.includes(item));
         speciesSelectize.clearOptions();
-        speciesSelectize.addOption(filteredSpecies.map((fileName) => ({ value: fileName, text: toSpeciesLabel(fileName) })));
+        speciesSelectize.addOption(filteredSpecies.map((fileName) => getSpeciesOptionData(fileName)));
+        speciesSelectize.refreshItems();
         speciesSelectize.refreshOptions(false);
         speciesSelectize.setValue(validSelected, true);
         updateDistributionSelection(validSelected);
@@ -808,6 +997,10 @@
           const option = document.createElement('option');
           option.value = fileName;
           option.textContent = toSpeciesLabel(fileName);
+          const commonNames = getCommonNames(fileName);
+          if (commonNames.length) {
+            option.title = commonNames.join(', ');
+          }
           option.selected = validSelected.includes(fileName);
           speciesSelect.appendChild(option);
         }
@@ -1023,6 +1216,16 @@
       return false;
     }
 
+    function getSelectedSdmModelType() {
+      if (showThresholdSdm) {
+        return 'threshold';
+      }
+      if (showLogisticSdm) {
+        return 'logistic';
+      }
+      return null;
+    }
+
     async function findSpeciesAtLocation(lat, lng) {
       const point = [lng, lat];
       const candidates = allSpeciesFiles.filter((fileName) => {
@@ -1084,8 +1287,7 @@
         let loadedSdmCount = 0;
         let missingSdmCount = 0;
         const loadedSdmFiles = [];
-        const loadedSdmRanges = [];
-        const selectedModelType = useThresholdModel ? 'threshold' : 'logistic';
+        const selectedModelType = getSelectedSdmModelType();
 
         if (showDistributions) {
           const geojsonBySpecies = await Promise.all(
@@ -1132,7 +1334,7 @@
           }
         }
 
-        if (showSdms) {
+        if (selectedModelType) {
           for (const selectedFile of selectedFiles) {
             const sdmFileName = getSdmFileName(selectedFile, selectedModelType);
             if (!sdmFileName) {
@@ -1157,14 +1359,13 @@
                 pane: sdmPaneName,
                 opacity: 1,
                 zIndex: 450,
-                resolution: 128,
+                resolution: 256,
                 pixelValuesToColorFn: (values) => sdmPixelToColor(values[0], selectedModelType)
               });
 
               sdmLayerGroup.addLayer(sdmLayer);
               activeSdmLayers.set(`${selectedFile}::${selectedModelType}`, sdmLayer);
               loadedSdmFiles.push(sdmFileName);
-              loadedSdmRanges.push(`${georaster.mins?.[0] ?? 'NA'}..${georaster.maxs?.[0] ?? 'NA'}`);
               if (sdmLayer.getBounds && sdmLayer.getBounds().isValid()) {
                 allBounds.extend(sdmLayer.getBounds());
               }
@@ -1226,21 +1427,18 @@
           map.fitBounds(allBounds, { padding: [25, 25] });
         }
 
-        if (showSdms) {
+        if (selectedModelType) {
           const modelLabel = selectedModelType === 'threshold' ? 'threshold' : 'logistic';
           const preview = loadedSdmFiles.slice(0, 3).join(', ');
-          const rangePreview = loadedSdmRanges.slice(0, 3).join(', ');
           const previewText = preview ? ` Example: ${preview}` : '';
-          const rangeText = rangePreview ? ` Range: ${rangePreview}` : '';
-          sdmStatus.textContent = `SDMs (${modelLabel}) in view: loaded ${loadedSdmCount}, missing ${missingSdmCount}.${previewText}${rangeText}`;
+          sdmStatus.textContent = `SDMs (${modelLabel}) in view: loaded ${loadedSdmCount}, missing ${missingSdmCount}.${previewText}`;
         } else {
-          const modelLabel = selectedModelType === 'threshold' ? 'threshold' : 'logistic';
-          sdmStatus.textContent = `SDMs are turned off. Selected model: ${modelLabel}.`;
+          sdmStatus.textContent = 'SDMs are turned off.';
         }
 
         if (showDistributions) {
           speciesStatus.textContent = `Loaded ${selectedFiles.length} species distributions.`;
-        } else if (showSdms) {
+        } else if (selectedModelType) {
           speciesStatus.textContent = `Displaying SDMs for selected species (distributions hidden).`;
           renderSubspeciesLegend(new Map());
         } else if (showOccurrences) {
@@ -1265,8 +1463,8 @@
 
     function syncSdmSwitches() {
       toggleDistributionsSwitch.checked = showDistributions;
-      toggleSdmsSwitch.checked = showSdms;
-      thresholdModelSwitch.checked = useThresholdModel;
+      toggleLogisticSdmSwitch.checked = showLogisticSdm;
+      toggleThresholdSdmSwitch.checked = showThresholdSdm;
       toggleOccurrencesSwitch.checked = showOccurrences;
     }
 
@@ -1274,7 +1472,16 @@
       const selectedFiles = speciesSelectize
         ? speciesSelectize.items.slice()
         : [...speciesSelect.selectedOptions].map((option) => option.value);
-      updateDistributionSelection(selectedFiles);
+      return updateDistributionSelection(selectedFiles);
+    }
+
+    async function refreshMapForSdmSwitch() {
+      const currentCenter = map.getCenter();
+      const currentZoom = map.getZoom();
+      await rerenderSelectedSpeciesLayers();
+      map.invalidateSize(false);
+      map.setView(currentCenter, currentZoom, { animate: false });
+      forceRefreshSdmLayers();
     }
 
     toggleDistributionsSwitch.addEventListener('change', () => {
@@ -1283,21 +1490,28 @@
       rerenderSelectedSpeciesLayers();
     });
 
-    toggleSdmsSwitch.addEventListener('change', () => {
-      showSdms = toggleSdmsSwitch.checked;
+    toggleLogisticSdmSwitch.addEventListener('change', async () => {
+      showLogisticSdm = toggleLogisticSdmSwitch.checked;
+      if (showLogisticSdm) {
+        showThresholdSdm = false;
+      }
       syncSdmSwitches();
-      rerenderSelectedSpeciesLayers();
+      await refreshMapForSdmSwitch();
     });
 
-    thresholdModelSwitch.addEventListener('change', () => {
-      useThresholdModel = thresholdModelSwitch.checked;
+    toggleThresholdSdmSwitch.addEventListener('change', async () => {
+      showThresholdSdm = toggleThresholdSdmSwitch.checked;
+      if (showThresholdSdm) {
+        showLogisticSdm = false;
+      }
       syncSdmSwitches();
-      rerenderSelectedSpeciesLayers();
+      await refreshMapForSdmSwitch();
     });
 
     toggleOccurrencesSwitch.addEventListener('change', () => {
       showOccurrences = toggleOccurrencesSwitch.checked;
       syncSdmSwitches();
+      updatePrintLegend();
       rerenderSelectedSpeciesLayers();
     });
 
@@ -1319,7 +1533,7 @@
           try {
             const nearbySpecies = await findSpeciesAtLocation(lat, lng);
             locationSpeciesSet = new Set(nearbySpecies);
-            clearLocationButton.disabled = false;
+            syncFilterClearButton();
             applySpeciesFilters();
 
             if (locationPointMarker) {
@@ -1352,13 +1566,82 @@
 
     clearLocationButton.addEventListener('click', () => {
       locationSpeciesSet = null;
-      clearLocationButton.disabled = true;
-      locationStatus.textContent = 'Location filter cleared.';
+      countryFilterValue = '';
+      locationStatus.textContent = 'Filters cleared.';
+      if (countrySelectize) {
+        countrySelectize.setValue('', true);
+      } else {
+        countryFilterSelect.value = '';
+      }
       if (locationPointMarker) {
         map.removeLayer(locationPointMarker);
         locationPointMarker = null;
       }
       applySpeciesFilters();
+    });
+
+    function getSelectedSpeciesFiles() {
+      return speciesSelectize
+        ? speciesSelectize.items.slice()
+        : [...speciesSelect.selectedOptions].map((option) => option.value);
+    }
+
+    function triggerDownload(url, fileName) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function exportCurrentViewAsPdf() {
+      downloadStatus.textContent = 'Opening print dialog. Choose Save to PDF in your browser.';
+      updatePrintLegend();
+      window.setTimeout(() => {
+        window.print();
+      }, 50);
+    }
+
+    savePdfButton.addEventListener('click', () => {
+      exportCurrentViewAsPdf();
+    });
+
+    downloadDistributionButton.addEventListener('click', () => {
+      const selectedFiles = getSelectedSpeciesFiles();
+      if (!selectedFiles.length) {
+        downloadStatus.textContent = 'Select at least one species to download a distribution.';
+        return;
+      }
+      selectedFiles.forEach((fileName) => {
+        triggerDownload(`data/distributions/${fileName}`, fileName);
+      });
+      downloadStatus.textContent = `Downloading ${selectedFiles.length} distribution file(s).`;
+    });
+
+    downloadSdmButton.addEventListener('click', () => {
+      const selectedFiles = getSelectedSpeciesFiles();
+      const modelType = getSelectedSdmModelType();
+      if (!selectedFiles.length) {
+        downloadStatus.textContent = 'Select at least one species to download an SDM.';
+        return;
+      }
+      if (!modelType) {
+        downloadStatus.textContent = 'Turn on either Logistic SDM or Threshold SDM before downloading.';
+        return;
+      }
+      let downloadCount = 0;
+      for (const fileName of selectedFiles) {
+        const sdmFileName = getSdmFileName(fileName, modelType);
+        if (!sdmFileName) {
+          continue;
+        }
+        triggerDownload(`data/sdms/${sdmFileName}`, sdmFileName);
+        downloadCount += 1;
+      }
+      downloadStatus.textContent = downloadCount
+        ? `Downloading ${downloadCount} ${modelType} SDM file(s).`
+        : `No ${modelType} SDM files are available for the selected species.`;
     });
 
     function loadSpeciesOptions() {
@@ -1373,6 +1656,10 @@
         const option = document.createElement('option');
         option.value = fileName;
         option.textContent = toSpeciesLabel(fileName);
+        const commonNames = getCommonNames(fileName);
+        if (commonNames.length) {
+          option.title = commonNames.join(', ');
+        }
         speciesSelect.appendChild(option);
       }
 
@@ -1381,7 +1668,8 @@
       initSpeciesSelectize();
       initCountrySelectize();
       syncSdmSwitches();
-      sdmStatus.textContent = 'SDMs are turned off. Selected model: logistic.';
+      syncFilterClearButton();
+      sdmStatus.textContent = 'SDMs are turned off.';
       applySpeciesFilters();
     }
 

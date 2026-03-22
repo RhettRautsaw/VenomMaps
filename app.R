@@ -1,17 +1,15 @@
 library(shiny)
 library(leaflet)
-library(leaflet.extras)
 library(leaflet.extras2)
 library(RColorBrewer)
 library(sf)
-library(raster)
+library(terra)
 library(tidyr)
 library(dplyr)
 library(readr)
 library(ggpubr)
 library(ggtext)
 library(patchwork)
-library(sp)
 library(shinybusy)
 library(readxl)
 # library(scales)
@@ -49,7 +47,6 @@ sp_pal<-RColorBrewer::brewer.pal(11, "BrBG")
 point_pal <- colorFactor(c("red2", "gray75", "darkturquoise", "khaki2"), domain = c("dubious", "geoDist", "noLand", "updated"), na.color = "black")
 
 load("shiny_support_material/shiny-data_2021-10-25.RData")
-source("shiny_support_material/addRasterImage2.R")
 
 info<-read_xlsx("supplemental_material/SupplementalTable1.xlsx", sheet=1)
 modelinfo<-read_xlsx("supplemental_material/SupplementalTable1.xlsx", sheet="final_results")
@@ -191,13 +188,14 @@ server<-function(input, output, session) {
             addProviderTiles(providers$Esri.WorldStreetMap, group="Open Street Map", options = pathOptions(pane = "background")) %>%
             addProviderTiles(providers$Esri.WorldTerrain, group="Terrain", options = pathOptions(pane = "background")) %>%
             addProviderTiles(providers$Esri.WorldImagery, group="Satellite", options = pathOptions(pane = "background")) %>%
-            addProviderTiles(providers$Stamen.TonerLines, group="Boundaries", options = pathOptions(pane = "labels")) %>%
-            addProviderTiles(providers$Stamen.TonerLabels, group="Labels", options = pathOptions(pane = "labels")) %>%
+            addProviderTiles(providers$Stadia.StamenTonerLines, group="Boundaries", options = pathOptions(pane = "labels")) %>%
+            addProviderTiles(providers$Stadia.StamenTonerLabels, group="Labels", options = pathOptions(pane = "labels")) %>%
             addLayersControl(
                 baseGroups=c("Topography", "Open Street Map", "Terrain", "Satellite"),
-                overlayGroups=c("Boundaries","Labels"),
+                overlayGroups=c("Boundaries", "Labels"),
                 options=layersControlOptions(collapsed=F, position="bottomleft")
             ) %>%
+            hideGroup("Boundaries") %>%
             hideGroup("Labels") %>%
             addScaleBar(position = c("topleft"), options = scaleBarOptions()) %>% 
             addEasyprint(options=easyprintOptions(exportOnly = T, sizeModes = list("A4Landscape")))
@@ -231,15 +229,21 @@ server<-function(input, output, session) {
     # Filter distributions
     distribution<-reactive({
         if(is.null(input$species)){
-            as(combined_distribution,"Spatial")
+            combined_distribution
         }else{
-            as(combined_distribution %>% filter(Species %in% input$species),"Spatial")
+            combined_distribution %>% filter(Species %in% input$species)
         }
     })
     
     # Load SDMs
     niche<-reactive({
-        if((input$niche) | (input$thresh) & length(list.files("data/sdms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T))>1){
+        selected_sdm_files <- list.files(
+            "data/sdms",
+            paste0(input$species, "_avg.tif", collapse = "|"),
+            full.names = TRUE
+        )
+        
+        if ((input$niche || input$thresh) && length(selected_sdm_files) > 1) {
             if(input$thresh){
                 files<-list.files("data/sdms", paste0(input$species,"_avg_cloglog_p10b.tif", collapse = "|"), full.names = T)
             }else{
@@ -247,15 +251,14 @@ server<-function(input, output, session) {
             }
             combined_niches<-stack_diff_extents(files)
             names(combined_niches)<-gsub("_avg","",names(combined_niches))
-            # crs(combined_niches)<-CRS("+init=epsg:4326")
-            max(combined_niches, na.rm = TRUE)
-        }else if((input$niche) | (input$thresh) & length(list.files("data/sdms", paste0(input$species,"_avg.tif", collapse = "|"), full.names = T))==1){
+            terra::app(combined_niches, max, na.rm = TRUE)
+        } else if ((input$niche || input$thresh) && length(selected_sdm_files) == 1) {
             if(input$thresh){
                 files<-list.files("data/sdms", paste0(input$species,"_avg_cloglog_p10b.tif", collapse = "|"), full.names = T)
             }else{
                 files<-list.files("data/sdms", paste0(input$species,"_avg_cloglog.tif", collapse = "|"), full.names = T)
             }
-            combined_niches<-raster(files)
+            combined_niches<-terra::rast(files)
             names(combined_niches)<-gsub("_avg","",names(combined_niches))
             combined_niches
         }else{
@@ -271,7 +274,7 @@ server<-function(input, output, session) {
             paste0("distribution.geojson")
         },
         content = function(con) {
-            st_write(as(distribution(),"sf"), dsn = con, layer=con, driver="GeoJSON")
+            st_write(distribution(), dsn = con, layer = con, driver = "GeoJSON")
         }
     )
     
@@ -279,11 +282,11 @@ server<-function(input, output, session) {
     observeEvent(input$update, {
         show_modal_spinner()
         distribution<-distribution()
-        bbox<-st_bbox(as(distribution,"sf")) %>% as.vector()
+        bbox<-st_bbox(distribution) %>% as.vector()
         sp_factpal<-colorFactor(sp_pal,levels=sort(distribution$Subspecies), ordered=T, reverse=T)
         
         leafletProxy("map", data = distribution) %>%
-            clearGroup("distribution") %>% clearGroup("occpoints") %>% clearHeatmap() %>% clearMarkerClusters() %>%  removeControl("distribution") %>% clearImages() %>%
+            clearGroup("distribution") %>% clearGroup("occpoints") %>% clearMarkerClusters() %>%  removeControl("distribution") %>% clearImages() %>%
             addPolygons(data=distribution, color="black", weight=3, fillColor = ~sp_factpal(Subspecies), fillOpacity = 0.75, group="distribution", options = pathOptions(pane = "polygons")) %>%
             addLegend(data=distribution, position = "topleft", pal=sp_factpal, values = ~Subspecies, layerId = "distribution") %>%
             fitBounds(bbox[1],bbox[2],bbox[3],bbox[4])
@@ -315,11 +318,11 @@ server<-function(input, output, session) {
                 if(input$nodist){
                     leafletProxy("map") %>%
                         clearGroup("distribution") %>% removeControl("distribution") %>%
-                        addRasterImage2(niche(), colors = rev(pal), options = tileOptions(pane = "rasters"), 
+                        addRasterImage(niche(), colors = rev(pal), options = tileOptions(pane = "rasters"), 
                                         maxBytes = 800*1024*1024, project = T)
                 }else{
                     leafletProxy("map") %>%
-                        addRasterImage2(niche(), colors = rev(pal), options = tileOptions(pane = "rasters"), 
+                        addRasterImage(niche(), colors = rev(pal), options = tileOptions(pane = "rasters"), 
                                         maxBytes = 800*1024*1024, project = T)   
                 }
             }
